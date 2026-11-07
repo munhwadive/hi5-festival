@@ -342,7 +342,7 @@ body.has-hnav main { padding-top: 56px; }
     </div>
     <button class="btn" type="button" id="avNext" style="margin-top:16px">이 캐릭터로 결정!</button>
     <div class="avopts" id="avOpts"></div>
-    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-J</p>
+    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-L</p>
   </section>
 
   <!-- 닉네임 + 비밀번호 -->
@@ -424,10 +424,10 @@ body.has-hnav main { padding-top: 56px; }
       <small>미션 보상은 1인 최대 <span id="qCap2"></span>까지 받을 수 있어요</small>
     </div>
 
-    <div class="h2"><b>04 WARM-UP GAME</b><span>30초면 끝</span></div>
+    <div class="h2"><b>미션 1 · WARM-UP GAME</b><span>30초면 끝</span></div>
     <div class="qs" id="qGames"></div>
 
-    <div class="h2"><b>07 PLAY &amp; EARN</b><span>부스 체험 후 QR</span></div>
+    <div class="h2"><b>미션 2 · PLAY &amp; EARN</b><span>부스 체험 후 QR</span></div>
     <div class="qs" id="qBooths"></div>
     <div class="card" style="margin-top:14px;padding:14px">
       <b style="font-family:var(--f-head);font-weight:400;font-size:18px;color:var(--royal)">📷 현장 QR 찍는 법</b>
@@ -435,14 +435,14 @@ body.has-hnav main { padding-top: 56px; }
       <div class="codebox"><input id="codeIn" placeholder="예: C-MTYFX" maxlength="10" aria-label="QR 코드 입력"><button class="btn sm" type="button" id="codeBtn">확인</button></div>
     </div>
 
-    <div class="h2"><b>08 FIND HIGH FIVE!</b><span id="qCharCount"></span></div>
+    <div class="h2"><b>미션 3 · FIND HIGH FIVE!</b><span id="qCharCount"></span></div>
     <button class="q" type="button" data-go="chars"><span class="ic">🐮</span><span class="tx"><b>숨은 캐릭터 5마리 찾기</b><span>다 찾으면 SECRET REWARD!</span></span><span class="st" id="qCharSt">0/5</span></button>
 
-    <div class="h2"><b>09 HIGH FIVE SHOT</b><span>이벤트 응모</span></div>
+    <div class="h2"><b>미션 4 · HIGH FIVE SHOT</b><span>이벤트 응모</span></div>
     <div class="card" style="padding:14px" id="shotCard">
       <p class="help" style="margin:0 0 10px;color:var(--ink);font-weight:700">캐릭터와 하이파이브 사진을 찍어 <b>#HighFiveAI2026</b> 해시태그로 SNS 에 올리고, 내 SNS 아이디를 적어 주세요.</p>
       <div class="codebox" style="margin-top:0"><input id="snsIn" placeholder="@instagram_id" maxlength="40" aria-label="SNS 아이디" style="text-transform:none"><button class="btn sm" type="button" id="snsBtn">응모</button></div>
-      <p class="help" id="shotDone" hidden style="margin:10px 0 0;color:var(--green);font-weight:900">✅ 응모 완료! 결과는 행사 마지막에 발표해요.</p>
+      <p class="help" id="shotDone" hidden style="margin:10px 0 0;color:var(--green);font-weight:900">✅ 응모 완료! 전광판에 응모자로 표시되고, 추첨해서 선물을 드려요.</p>
     </div>
 
     <div class="h2"><b>MAIN QUEST 스탬프</b><span id="qStamps"></span></div>
@@ -825,30 +825,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   ];
   var HF_GAMES = {
     quiz: { name: 'AI 스타트업 OX 퀴즈', tiers: [[3, 500], [2, 300], [0, 100]], max: 3 },
-    coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 }
+    coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 },
+    updown: { name: 'AI와 대결! 주가 UP & DOWN', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
   };
   var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
-  var HF_DIV_RATES = [10, 8, 6, 4, 2]; // 배당률(%) : 1위 ~ 5위 기업
-
-  /** 배당 계산: 지금 1~5위 기업에 투자한 금액 × 배당률 (만원 단위, 버림) */
-  function hfDividendPlan(agg, rates) {
-    rates = rates || HF_DIV_RATES;
-    var ranks = [], pay = {}, total = 0, people = 0;
-    (agg.startups || []).filter(function (s) { return !s.extra && s.amount > 0; }).slice(0, rates.length).forEach(function (s, i) {
-      var rate = rates[i];
-      ranks.push({ rank: i + 1, name: s.name, rate: rate });
-      (s.investorList || []).forEach(function (iv) {
-        var man = Math.floor(iv.amount * rate / 100 / 10000);
-        if (man <= 0) return;
-        var k = hfNorm(iv.id);
-        var e = pay[k] || (pay[k] = { id: iv.id, man: 0, items: [] });
-        if (!e.items.length) people++;
-        e.man += man; total += man;
-        e.items.push({ name: s.name, rank: i + 1, rate: rate, invested: Math.floor(iv.amount / 10000), man: man });
-      });
-    });
-    return { ranks: ranks, pay: pay, total: total, people: people };
-  }
   var HF_STEPS = [
     ['CHECKIN', 'CHECK-IN'], ['AVATAR', 'MAKE YOUR AVATAR'], ['GET', '₩100M GET'], ['WARMUP', 'WARM-UP GAME'],
     ['DISCOVER', 'DISCOVER'], ['INVEST', 'INVEST'], ['PLAY', 'PLAY & EARN'], ['FIND', 'FIND THE CHARACTER'],
@@ -859,6 +839,17 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var n = (Number(no) || 0) * 7919 + 1121, A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
     for (var i = 0; i < 4; i++) { s += A.charAt(n % A.length); n = Math.floor(n / A.length) + 13; }
     return 'HF' + ('000' + no).slice(-4) + '-' + s;
+  }
+
+  /** 시간별 TOP5 상품: 투자왕 순위(kings)에서 이미 받은 사람(prev)을 빼고 n명 */
+  function hfPrizeWinners(kings, prev, n) {
+    var out = [];
+    for (var i = 0; i < kings.length && out.length < (n || 5); i++) {
+      var k = kings[i];
+      if (!(k.score > 0) || (prev && prev[hfNorm(k.id)])) continue;
+      out.push({ rank: out.length + 1, id: k.id, score: k.score, overall: k.rank });
+    }
+    return out;
   }
 
   /**
@@ -996,9 +987,12 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       return { name: s.name, tag: x.tag, tags: x.tags, line: x.line, team: x.team, rank: s.rank, amount: s.amount, investors: s.investors };
     });
     out.totals = { amount: agg.totals.amount, investors: agg.totals.investors };
-    var dl = S.dividend ? S.dividend() : null;
-    if (dl && dl.round) out.dividend = { round: dl.round, at: dl.at, ranks: dl.ranks, total: dl.total, people: dl.people, auto: !!dl.auto, mine: (m.D && m.D['r' + dl.round]) || 0, myTotal: pl.div || 0 };
-    else out.dividend = { round: 0, auto: !!(dl && dl.auto), myTotal: pl.div || 0 };
+    var pz = S.prizes ? S.prizes() : null, myKey = hfNorm(pl.id);
+    if (pz) {
+      var mine = [];
+      (pz.rounds || []).forEach(function (r) { (r.winners || []).forEach(function (w) { if (hfNorm(w.id) === myKey) mine.push({ hour: r.hour, rank: w.rank, final: r.final, at: r.at }); }); });
+      out.prizes = { auto: pz.auto, next: pz.next, rounds: (pz.rounds || []).map(function (r) { return { hour: r.hour, final: r.final, at: r.at, count: (r.winners || []).length }; }), mine: mine };
+    }
     return out;
   }
   // </aggregate> -----------------------------------------------------------
@@ -1170,8 +1164,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var base = role === 'admin' ? agg : hfPublic(agg, C.SHOW_FULL_NAMES);
     base.ok = true; base.mode = 'mock'; base.status = d.status; base.closedAt = d.closedAt;
     base.serverTime = Date.now(); base.paused = !!d.paused;
-    base.dividend = d.divLast || { round: 0, auto: !!d.divAuto };
-    if (role === 'admin') { base.dividend.auto = !!d.divAuto; base.dividend.history = d.divHist || []; base.dividend.rates = HF_DIV_RATES; }
+    base.prizes = mockPrizes(d);
+    var sl = Object.keys(d.accounts || {}).map(function (k) { return d.accounts[k]; }).filter(function (a) { return a.m && a.m.SHOT; });
+    base.shots = { count: sl.length, names: sl.map(function (a) { return a.id; }), draws: d.shotDraws || [] };
     return base;
   }
 
@@ -1182,6 +1177,13 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       startups: (C.STARTUPS || []).map(function (s) { return typeof s === 'string' ? { name: s } : s; }),
       missions: HF_DEFAULT_MISSIONS
     };
+  }
+  var PRIZE_HOURS = [14, 15, 16, 17];
+  function mockPrizes(d) {
+    var r = d.prizeRounds || {}, rounds = PRIZE_HOURS.map(function (h) { var x = r[h]; return { hour: h, final: h === 17, at: x ? x.at : 0, winners: x ? x.winners : [] }; });
+    var last = null; rounds.forEach(function (x) { if (x.at && (!last || x.at >= last.at)) last = x; });
+    var next = 0; for (var i = 0; i < PRIZE_HOURS.length; i++) if (!r[PRIZE_HOURS[i]]) { next = PRIZE_HOURS[i]; break; }
+    return { auto: !!d.prizeAuto, rounds: rounds, next: next, last: last };
   }
   function mockBudgets(d) {
     var b = {};
@@ -1205,7 +1207,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
         rows: function () { return d.rows.slice(); },
         appendInvest: function (id, startup, man) { d.rows.push({ ts: Date.now(), id: id, startup: startup, amount: man * 10000 }); },
         agg: function () { return hfAggregate(d.rows, { budget: st.budget, budgets: mockBudgets(d), startups: st.startups.map(function (s) { return s.name; }), policy: st.policy, closedAt: d.closedAt }); },
-        dividend: function () { return d.divLast || { round: 0, auto: !!d.divAuto }; }
+        prizes: function () { return mockPrizes(d); }
       };
       var out = hfAppHandle(p.action, p, S);
       mockSave(d);
@@ -1272,24 +1274,33 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       return apiGet({ action: 'setStatus', status: status, key: HF.adminKey() });
     },
 
-    // 관리자: 배당 지급 / 자동 배당 켜기·끄기
+    // 관리자: 시간별 TOP5 수상자 선정 / 자동 선정 켜기·끄기
     adminAction: function (params) {
       if (isGas) return gasCall(Object.assign({ key: BOOT.adminKey }, params));
       if (isMock) {
         var d = mockLoad(); d.accounts = d.accounts || {};
-        if (params.action === 'divAuto') { d.divAuto = params.on === '1' || params.on === true; if (d.divLast) d.divLast.auto = d.divAuto; mockSave(d); return Promise.resolve({ ok: true, auto: d.divAuto }); }
-        if (params.action === 'dividend') {
-          if (d.status !== 'OPEN') return Promise.reject(new Error('투자 진행 중일 때만 배당을 줄 수 있어요.'));
+        if (params.action === 'shotDraw') {
+          var all = Object.keys(d.accounts || {}).map(function (k) { return d.accounts[k]; }).filter(function (a) { return a.m && a.m.SHOT; });
+          d.shotDraws = d.shotDraws || [];
+          var done = {}; d.shotDraws.forEach(function (x) { done[hfNorm(x.id)] = 1; });
+          var pool = all.filter(function (a) { return !done[hfNorm(a.id)]; });
+          if (!pool.length) return Promise.reject(new Error(all.length ? '응모자를 모두 뽑았어요.' : '아직 응모자가 없어요.'));
+          var w = pool[Math.floor(Math.random() * pool.length)];
+          var rec = { n: d.shotDraws.length + 1, id: w.id, no: w.no, at: Date.now(), pool: pool.length };
+          d.shotDraws.push(rec); mockSave(d);
+          return Promise.resolve({ ok: true, winner: rec, count: all.length });
+        }
+        if (params.action === 'prizeAuto') { d.prizeAuto = params.on === '1' || params.on === true; mockSave(d); return Promise.resolve({ ok: true, auto: d.prizeAuto }); }
+        if (params.action === 'prizeNow') {
+          d.prizeRounds = d.prizeRounds || {};
+          var hour = 0; for (var i = 0; i < PRIZE_HOURS.length; i++) if (!d.prizeRounds[PRIZE_HOURS[i]]) { hour = PRIZE_HOURS[i]; break; }
+          if (!hour) return Promise.reject(new Error('14·15·16·17시 수상자를 모두 뽑았어요.'));
           var agg = hfAggregate(d.rows, { budget: C.BUDGET, budgets: mockBudgets(d), startups: STARTUP_NAMES, policy: C.OVER_LIMIT_POLICY, closedAt: d.closedAt });
-          var plan = hfDividendPlan(agg);
-          var round = ((d.divLast && d.divLast.round) || 0) + 1;
-          Object.keys(plan.pay).forEach(function (k) {
-            var a = d.accounts[k]; if (!a) return;
-            a.div = (a.div || 0) + plan.pay[k].man; a.m = a.m || {}; a.m.D = a.m.D || {}; a.m.D['r' + round] = plan.pay[k].man;
-          });
-          var info = { round: round, at: Date.now(), ranks: plan.ranks, total: plan.total, people: plan.people, auto: !!d.divAuto, source: 'manual' };
-          d.divLast = info; d.divHist = [info].concat(d.divHist || []).slice(0, 24); mockSave(d);
-          var r = JSON.parse(JSON.stringify(info)); r.ok = true; return Promise.resolve(r);
+          var prev = {};
+          if (hour !== 17) Object.keys(d.prizeRounds).forEach(function (k) { if (Number(k) !== 17) d.prizeRounds[k].winners.forEach(function (w) { prev[hfNorm(w.id)] = 1; }); });
+          var winners = hfPrizeWinners(agg.kings || [], prev, 5);
+          d.prizeRounds[hour] = { at: Date.now(), winners: winners, source: 'manual' }; mockSave(d);
+          return Promise.resolve({ ok: true, hour: hour, final: hour === 17, winners: winners });
         }
         return Promise.reject(new Error('알 수 없는 요청'));
       }
@@ -1948,22 +1959,19 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   $('wcGo').addEventListener('click', function () { go('home'); claimPending(); });
 
   /* ---------- 렌더 ---------- */
-  var DIVKEY = 'hf26_div_seen';
+  var PZKEY = 'hf26_prize_seen';
   function checkDividendNews() {
-    var dv = S && S.dividend;
-    if (!dv || !dv.round) return;
-    var seen = Number(store.get(DIVKEY + '_' + (me && me.id)) || 0);
-    if (dv.round <= seen) return;
-    store.set(DIVKEY + '_' + (me && me.id), String(dv.round));
-    if (dv.mine > 0) {
-      var parts = (dv.ranks || []).map(function (r) { return r.rank + '위 ' + esc(r.name) + ' ' + r.rate + '%'; }).join('<br>');
-      setTimeout(function () {
-        modal('<span class="eyebrow">DIVIDEND · 제' + dv.round + '회 배당</span><h3>📈 배당금 +' + man(dv.mine) + '!</h3><p class="note">1~5위 기업에 투자한 금액만큼 배당을 받았어요.<br>받은 배당금으로 또 투자할 수 있어요!</p><p class="note" style="font-size:13px">' + parts + '</p><button class="btn" type="button" data-close>좋아요!</button>');
-        try { coinRain(18); } catch (e) { /* ignore */ }
-      }, 600);
-    } else if (seen) {
-      toast('💰 제' + dv.round + '회 배당이 지급됐어요! 1~5위 기업에 투자하면 다음 배당을 받아요');
-    }
+    var pz = S && S.prizes;
+    if (!pz || !pz.mine || !pz.mine.length) return;
+    var key = PZKEY + '_' + (me && me.id), seen = String(store.get(key) || '');
+    var fresh = pz.mine.filter(function (x) { return seen.indexOf('|' + x.hour + '|') < 0; });
+    if (!fresh.length) return;
+    store.set(key, seen + fresh.map(function (x) { return '|' + x.hour + '|'; }).join(''));
+    var x = fresh[fresh.length - 1];
+    setTimeout(function () {
+      modal('<span class="eyebrow">' + (x.final ? 'FINAL · 최종 투자왕' : 'HOURLY TOP 5') + '</span><h3>🎁 ' + x.hour + '시 투자자 ' + x.rank + '위!</h3><p class="note">' + (x.final ? '최종 투자왕 TOP5에 들었어요!' : x.hour + '시 투자자 TOP5에 뽑혔어요!') + '<br><b>안내 데스크</b>에 이 화면을 보여 주고 상품을 받아 가세요.</p><p class="note" style="font-size:13px">닉네임: <b>' + esc(me.id) + '</b></p><button class="btn" type="button" data-close>확인!</button>');
+      try { coinRain(18); } catch (e) { /* ignore */ }
+    }, 600);
   }
   function render() {
     if (!S || !me) return;
@@ -1981,7 +1989,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('hUsed').textContent = '투자 ' + eokTxt(used) + ' · ' + S.count + '건';
     $('hGiven').textContent = '총 ' + eokTxt(budget);
     var plus = (pl.bonus || 0) + (pl.div || 0);
-    $('hBonus').hidden = !plus; $('hBonus').textContent = '+' + man(plus) + (pl.div ? ' 보너스·배당' : ' 보너스');
+    $('hBonus').hidden = !plus; $('hBonus').textContent = '+' + man(plus) + ' 보너스';
     checkDividendNews();
     var nx = nextAction(rem, closed);
     $('nxTitle').innerHTML = nx[0]; $('nxSub').textContent = nx[1]; $('nxBtn').textContent = nx[2]; $('nxBtn').dataset.go = nx[3];
@@ -2073,7 +2081,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var pl = S.player;
     $('qBonus').textContent = '+' + man(pl.bonus); $('qCap').textContent = man(pl.cap); $('qCap2').textContent = man(pl.cap);
     $('qMeter').style.width = Math.min(100, pl.bonus / pl.cap * 100) + '%';
-    var GI = { quiz: '❓', coin: '🪙' }, GD = { quiz: 'OX 3문제 · 최대 +500만', coin: '떨어지는 코인을 톡톡! · 최대 +500만' };
+    var GI = { quiz: '❓', coin: '🪙', updown: '📈' }, GD = { quiz: 'OX 3문제 · 최대 +500만', coin: '떨어지는 코인을 톡톡! · 최대 +500만', updown: '🤖 AI와 대결! 주가가 오를까 내릴까? · 최대 +500만' };
     $('qGames').innerHTML = S.games.map(function (g) {
       return '<button class="q' + (g.done ? ' done' : '') + '" type="button" data-game="' + g.key + '"' + (g.done ? ' disabled' : '') + '><span class="ic">' + GI[g.key] + '</span>' +
         '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (g.done ? '완료 · 점수 ' + g.score : GD[g.key]) + '</span></span><span class="st' + (g.done ? ' done' : '') + '">' + (g.done ? 'CLEAR' : 'PLAY') + '</span></button>';
@@ -2089,7 +2097,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('qStamps').textContent = S.steps.filter(function (s) { return s.done; }).length + '/12';
     $('stampGrid').innerHTML = S.steps.map(function (s, i) { return '<div class="' + (s.done ? 'on' : '') + '"><span><i>' + (s.done ? ICON[s.key] : ('0' + (i + 1)).slice(-2)) + '</i>' + esc(s.name) + '</span></div>'; }).join('');
   }
-  $('qGames').addEventListener('click', function (e) { var b = e.target.closest('[data-game]'); if (b && !b.disabled) (b.dataset.game === 'quiz' ? playQuiz : playCoin)(); });
+  $('qGames').addEventListener('click', function (e) { var b = e.target.closest('[data-game]'); if (b && !b.disabled) ({ quiz: playQuiz, coin: playCoin, updown: playUpdown }[b.dataset.game] || playQuiz)(); });
   $('codeBtn').addEventListener('click', function () {
     var c = $('codeIn').value.trim();
     if (!c) return toast('QR 아래 코드를 입력해 주세요');
@@ -2123,7 +2131,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     HF.countTo($('myBal'), rem, HF.won, 800);
     $('myMeter').style.width = Math.max(0, Math.min(100, rem / S.budget * 100)) + '%';
     $('myUsed').textContent = '투자 ' + eokTxt(S.invested) + ' · ' + S.count + '건';
-    $('myGiven').textContent = '1억 + 보너스 ' + man(pl.bonus) + (pl.div ? ' + 배당 ' + man(pl.div) : '');
+    $('myGiven').textContent = '1억 + 보너스 ' + man(pl.bonus);
     var plusM = (pl.bonus || 0) + (pl.div || 0);
     $('myBonus').hidden = !plusM; $('myBonus').textContent = '+' + man(plusM);
     $('myFinal').hidden = !(rem > 0 && S.invested > 0 && S.status === 'OPEN');
@@ -2140,7 +2148,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     }).join('') : '<li class="empty">투자 기록이 여기에 쌓여요</li>';
     var rw = [];
     rw.push('💰 미션 추가 투자금 <b>+' + man(pl.bonus) + '</b>');
-    rw.push('📈 받은 배당금 <b>+' + man(pl.div || 0) + '</b>' + (S.dividend && S.dividend.auto ? ' · 매시 정각 1~5위 기업 투자자에게 지급' : ''));
+    var pzm = (S.prizes && S.prizes.mine) || [];
+    pzm.forEach(function (x) { rw.push('🎁 <b>' + x.hour + '시 투자자 ' + x.rank + '위</b> 상품 당첨! (안내 데스크에서 수령)'); });
+    rw.push('⏰ 14·15·16시 정각 투자자 TOP5에게 상품! 17시엔 최종 투자왕 TOP5');
     if (S.secret) rw.push('🎁 SECRET REWARD 쿠폰 <b>' + esc(S.secret.coupon) + '</b> (안내 데스크에서 교환)');
     if (S.shot) rw.push('📸 HIGH FIVE SHOT 이벤트 응모 완료');
     rw.push('🏅 스탬프 ' + S.steps.filter(function (s) { return s.done; }).length + '/12');
@@ -2244,6 +2254,52 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       gameRunning = false;
       modal('<span class="eyebrow">OX 퀴즈 결과</span><h3>' + score + ' / 3 정답!</h3><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
       call({ action: 'game', game: 'quiz', score: score, rid: rid() }).catch(function () { closeModal(); });
+    }
+    show();
+  }
+
+  /* ---------- WARM-UP: 주가 UP & DOWN ---------- */
+  function playUpdown() {
+    var names = ((S && S.startups) || []).map(function (x) { return x.name; });
+    if (!names.length) names = ['STARTUP A', 'STARTUP B', 'STARTUP C'];
+    var i = 0, score = 0, ai = 0, N = 5, pts = [];
+    for (var k = 0; k < 8; k++) pts.push(50 + (Math.random() - .5) * 30);
+    gameRunning = true;
+    function chart(list, hl) {
+      var w = 280, h = 120, mn = Math.min.apply(null, list) - 5, mx = Math.max.apply(null, list) + 5;
+      var xy = list.map(function (v, j) { return [(j / (list.length - 1)) * (w - 20) + 10, h - 10 - (v - mn) / (mx - mn) * (h - 20)]; });
+      var d = xy.map(function (p, j) { return (j ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+      var last = xy[xy.length - 1];
+      return '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:auto;background:#0a1456;border-radius:14px;margin:6px 0 12px">' +
+        '<path d="' + d + '" fill="none" stroke="' + (hl || '#d9e021') + '" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>' +
+        '<circle cx="' + last[0] + '" cy="' + last[1] + '" r="6" fill="#fff"/></svg>';
+    }
+    function show() {
+      var nm = names[Math.floor(Math.random() * names.length)];
+      modal('<span class="eyebrow">WARM-UP GAME · 🤖 AI와 대결! 주가 UP &amp; DOWN</span><div class="quiz-n">ROUND ' + (i + 1) + ' / ' + N + ' · 나 ' + score + ' : ' + ai + ' AI</div>' +
+        '<div class="quiz-q" style="min-height:0;margin:8px 0 0">' + esc(nm) + ' 주가, 다음엔?</div>' + chart(pts) +
+        '<div class="ox"><button class="o" type="button" data-ud="1" style="font-size:30px">▲ UP</button><button class="x" type="button" data-ud="0" style="font-size:30px">▼ DOWN</button></div><div class="quiz-fb" id="qfb"></div>');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-ud]'), function (b) {
+        b.addEventListener('click', function () {
+          if (b.dataset.locked) return;
+          Array.prototype.forEach.call(document.querySelectorAll('[data-ud]'), function (x) { x.dataset.locked = 1; });
+          var up = Math.random() < .5, ok = (b.dataset.ud === '1') === up;
+          var aiUp = Math.random() < .5, aiOk = aiUp === up; if (aiOk) ai++;
+          var last = pts[pts.length - 1], next = last + (up ? 1 : -1) * (6 + Math.random() * 12);
+          pts.push(next); if (pts.length > 10) pts.shift();
+          if (ok) score++;
+          var svg = document.querySelector('#modal svg'); if (svg) svg.outerHTML = chart(pts, up ? '#21c46b' : '#ff5a6a');
+          $('qfb').innerHTML = (up ? '📈 올랐어요! ' : '📉 내렸어요! ') + '나 ' + (ok ? '⭕' : '❌') + ' · 🤖 AI는 ' + (aiUp ? '▲UP' : '▼DOWN') + ' ' + (aiOk ? '⭕' : '❌');
+          $('qfb').style.color = ok ? 'var(--green)' : 'var(--bad)';
+          setTimeout(function () { i++; if (i < N) show(); else finish(); }, 1300);
+        });
+      });
+    }
+    function finish() {
+      gameRunning = false;
+      var vs = score > ai ? '🏆 AI를 이겼어요!' : score === ai ? '🤝 AI와 무승부!' : '🤖 AI가 이겼어요… 다음엔 꼭!';
+      modal('<span class="eyebrow">AI 대결 결과</span><h3>' + vs + '</h3><p class="note">나 <b>' + score + '</b> : <b>' + ai + '</b> AI (5라운드)</p><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
+      call({ action: 'game', game: 'updown', score: score, rid: rid() }).catch(function () { closeModal(); });
     }
     show();
   }
