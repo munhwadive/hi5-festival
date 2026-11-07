@@ -397,6 +397,27 @@ body.no-led .bar::after { display: none; }
 .kcrown svg { width: 100%; height: 100%; display: block; }
 .crown svg { width: 100%; height: 100%; }
 
+/* 투자왕 순위: 투자자별 세부 금액 */
+.kr-rule { font-family: var(--f-kr); font-size: 15px; color: rgba(255,255,255,.6); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.more ol.kings { gap: 4px; margin-top: 6px; }
+.more ol.kings li, .more ol.kings li:first-child { height: auto; row-gap: 0; padding-top: 2px; padding-bottom: 3px; }
+.more ol.kings li .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.more ol.kings li .kd { grid-column: 2 / -1; display: flex; gap: 12px; font-family: var(--f-kr); font-size: 15px; color: rgba(255,255,255,.62); white-space: nowrap; margin-top: -2px; padding-left: 48px; }
+.more ol.kings li .kd b { color: #fff; font-weight: 700; }
+.more ol.kings li:first-child .kd b { color: var(--lime); }
+.stat-pair { padding-bottom: 10px; }
+.stat.total { padding: 12px 0 12px; }
+.num.big { font-size: 96px; margin-top: 4px; }
+.full { margin-top: 4px; font-size: 24px; }
+.more { padding-top: 12px; }
+.more ol.kings li .n { font-size: 27px; }
+.more ol.kings li:first-child .n { font-size: 30px; }
+.more ol.kings li .r, .more ol.kings li .a { font-size: 26px; }
+.more ol.kings .kav { width: 32px; height: 32px; vertical-align: -7px; margin-right: 8px; }
+.more ol.kings .kcrown { width: 34px; height: 27px; margin-right: 6px; }
+.more ol.kings li .kd { padding-left: 40px; }
+.more ol.kings li .kd { gap: 9px; padding-left: 34px; font-size: 14px; }
+
 </style>
 <style>
 :root {
@@ -480,7 +501,8 @@ body.no-led .bar::after { display: none; }
         <span class="full"><span id="totalFull">₩0</span> <em id="totalEok"></em></span>
       </div>
       <div class="more">
-        <div class="tabs"><span class="kr-title">👑 투자왕 순위</span><span class="kr-lbl">TOP3 기업 투자 합계</span></div>
+        <div class="tabs"><span class="kr-title">👑 투자왕 순위</span><span class="kr-lbl">TOP3 기업 투자 합계 순</span></div>
+        <div class="kr-rule">순위 기준: TOP3 합계 → 1위 기업 → 2위 기업 → 총 투자 → 먼저 투자</div>
         <ol id="kingList" class="kings"></ol>
       </div>
     </aside>
@@ -772,21 +794,23 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     };
 
     // 투자왕: 현재 1~3위 기업에 투자한 금액 합계가 가장 큰 투자자
-    //   동점이면 ① 1위 기업 투자액이 큰 사람 → ② 2위 기업 투자액이 큰 사람 → ③ 먼저 투자를 마친 사람
+    //   동점이면 ① 1위 기업 투자액 → ② 2위 기업 투자액 → ③ 총 투자 금액 → ④ 먼저 투자를 마친 사람
     var top3 = startups.slice(0, 3).filter(function (s) { return s.amount > 0; }).map(function (s) { return s.name; });
     var isTop = {};
     top3.forEach(function (n) { isTop[n] = 1; });
+    //   (TOP3에 투자하지 않은 투자자도 총 투자액 순으로 아래에 나열)
     var ks = {};
     counted.forEach(function (r) {
-      if (!isTop[r.startup]) return;
       var pk = hfNorm(r.id);
-      var k = ks[pk] || (ks[pk] = { id: parts[pk].id, score: 0, by: {}, last: 0, total: parts[pk].total });
+      var k = ks[pk] || (ks[pk] = { id: parts[pk].id, score: 0, by: {}, last: 0, first: r.ts, total: parts[pk].total });
+      if (!isTop[r.startup]) return;
       k.score += r.amount; k.by[r.startup] = (k.by[r.startup] || 0) + r.amount; k.last = r.ts;
     });
     var kings = Object.keys(ks).map(function (k) { return ks[k]; })
       .sort(function (a, b) {
         var t1 = top3[0], t2 = top3[1];
-        return (b.score - a.score) || ((b.by[t1] || 0) - (a.by[t1] || 0)) || ((b.by[t2] || 0) - (a.by[t2] || 0)) || (a.last - b.last);
+        return (b.score - a.score) || ((b.by[t1] || 0) - (a.by[t1] || 0)) || ((b.by[t2] || 0) - (a.by[t2] || 0)) ||
+          ((b.total || 0) - (a.total || 0)) || ((a.last || a.first) - (b.last || b.first));
       })
       .map(function (k, i) { return { rank: i + 1, id: k.id, score: k.score, by: k.by, last: k.last, total: k.total }; });
 
@@ -872,7 +896,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   var HF_GAMES = {
     quiz: { name: 'AI 스타트업 OX 퀴즈', tiers: [[3, 500], [2, 300], [0, 100]], max: 3 },
     coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 },
-    updown: { name: 'AI와 대결! 가위바위보', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
+    updown: { name: 'AI와 연타 대결!', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
   };
   var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
   var HF_SECRET_NEED = 3; // 캐릭터 몇 마리 찾으면 SECRET REWARD (쉽게: 5마리 중 3마리)
@@ -1719,9 +1743,13 @@ if (!document.documentElement.classList.contains('need-setup')) {
       ol.innerHTML = '<li><span class="note">TOP3 기업에 투자하면 순위에 올라요!</span></li>';
       return;
     }
+    top3 = top3 || [];
     ol.innerHTML = kings.slice(0, 5).map(function (k) {
+      var by = k.by || {};
+      var det = top3.map(function (n, i) { return '<span>' + (i + 1) + '위 기업 <b>' + HF.compact(by[n] || 0) + '</b></span>'; }).join('') +
+        '<span>총 투자 <b>' + HF.compact(k.total || 0) + '</b></span>';
       return '<li><span class="r">' + (k.rank < 10 ? '0' : '') + k.rank + '</span><span class="n">' + (k.rank === 1 ? '<i class="kcrown">' + CROWN + '</i>' : '') + ((k.avatar || window.HF_DEFAULT_AVATAR) ? '<img class="kav" alt="" src="' + esc(k.avatar || window.HF_DEFAULT_AVATAR) + '">' : '') + esc(k.id) + '</span>' +
-        '<span class="a">' + HF.compact(k.score) + '</span></li>';
+        '<span class="a">' + HF.compact(k.score) + '</span><span class="kd">' + det + '</span></li>';
     }).join('');
   }
 
