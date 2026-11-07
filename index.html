@@ -342,7 +342,7 @@ body.has-hnav main { padding-top: 56px; }
     </div>
     <button class="btn" type="button" id="avNext" style="margin-top:16px">이 캐릭터로 결정!</button>
     <div class="avopts" id="avOpts"></div>
-    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-R</p>
+    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-S</p>
   </section>
 
   <!-- 닉네임 + 비밀번호 -->
@@ -424,7 +424,7 @@ body.has-hnav main { padding-top: 56px; }
       <small>미션 보상은 1인 최대 <span id="qCap2"></span>까지 받을 수 있어요</small>
     </div>
 
-    <div class="h2"><b>미션 1 · WARM-UP GAME</b><span>30초면 끝</span></div>
+    <div class="h2"><b>미션 1 · WARM-UP GAME</b><span>100% 성공 = +1,000만</span></div>
     <div class="qs" id="qGames"></div>
 
     <div class="h2"><b>미션 2 · PLAY &amp; EARN</b><span>부스 체험 후 QR</span></div>
@@ -826,11 +826,14 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     { code: 'M-MJSZZ', type: 'mission', key: 'M3', name: '체험 미션 3', reward: 1000, desc: '부스 체험을 마치고 QR 을 찍어요', hint: '' }
   ];
   var HF_GAMES = {
-    quiz: { name: 'AI 스타트업 OX 퀴즈', tiers: [[3, 500], [2, 300], [0, 100]], max: 3 },
-    coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 },
-    updown: { name: 'AI와 연타 대결!', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
+    // 점수 = 성공률(%) · 100% 성공 1,000만 / 10% 떨어질 때마다 100만씩 줄어듦
+    coin: { name: 'LV.1 코인 캐치 10초', max: 100 },
+    updown: { name: 'LV.2 AI와 연타 대결!', max: 100 },
+    quiz: { name: 'LV.3 AI 스타트업 OX 퀴즈', max: 100 }
   };
   var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
+  /** 웜업 게임 보상(만원): 성공률 100% → 1,000만, 10% 떨어질 때마다 100만씩 감소 */
+  function hfGameReward(pct) { pct = Math.max(0, Math.min(100, Math.floor(Number(pct) || 0))); return Math.floor(pct / 10) * 100; }
   var HF_SECRET_NEED = 3; // 캐릭터 몇 마리 찾으면 SECRET REWARD (쉽게: 5마리 중 3마리)
   var HF_STEPS = [
     ['CHECKIN', 'CHECK-IN'], ['AVATAR', 'MAKE YOUR AVATAR'], ['GET', '₩100M GET'], ['WARMUP', 'WARM-UP GAME'],
@@ -939,8 +942,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
         ev = { type: 'game', title: '이미 참여한 게임이에요', again: true };
       } else {
         var score = Math.max(0, Math.min(g.max, Math.floor(Number(p.score) || 0)));
-        var tier = 0;
-        for (var t = 0; t < g.tiers.length; t++) if (score >= g.tiers[t][0]) { tier = g.tiers[t][1]; break; }
+        var tier = hfGameReward(score);
         stamp('G_' + p.game, { ts: now, score: score });
         stamp('WARMUP');
         ev = { type: 'game', title: g.name + ' 완료!', score: score, reward: give(tier) };
@@ -2036,7 +2038,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     if (closed) return ['투자 마감!', '곧 투자왕을 발표해요', '내 포트폴리오 보기', 'my'];
     if (!stepDone('AVATAR')) return ['나만의 투자자<br>아바타 만들기', '셀카 한 장이면 내 캐릭터 완성!', '📸 아바타 만들기', 'avatar'];
     if (!stepDone('INVEST')) return ['첫 투자를<br>해볼까요?', '부스를 둘러보고 마음에 드는 기업에 투자해요', '💸 기업 찾으러 가기', 'co'];
-    if (!stepDone('WARMUP')) return ['워밍업 게임하고<br>투자금 더 받기', '30초면 끝! 최대 +500만원', '🎮 게임하러 가기', 'quest'];
+    if (!stepDone('WARMUP')) return ['워밍업 게임하고<br>투자금 더 받기', '30초면 끝! 게임당 최대 +1,000만원', '🎮 게임하러 가기', 'quest'];
     if (rem > 0 && S.count < 3) return ['다른 기업도<br>찾아봐요', '남은 투자금 ' + eokTxt(rem), '🔍 기업 더 보기', 'co'];
     var found = S.characters.filter(function (c) { return c.found; }).length;
     if (found < S.characters.length) return ['숨은 캐릭터<br>찾기 ' + found + '/' + S.characters.length, '행사장 곳곳의 캐릭터 QR 을 찍어요', '🐮 캐릭터 찾기', 'chars'];
@@ -2101,10 +2103,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var pl = S.player;
     $('qBonus').textContent = '+' + man(pl.bonus); $('qCap').textContent = man(pl.cap); $('qCap2').textContent = man(pl.cap);
     $('qMeter').style.width = Math.min(100, pl.bonus / pl.cap * 100) + '%';
-    var GI = { quiz: '❓', coin: '🪙', updown: '👆' }, GD = { quiz: 'OX 3문제 · 최대 +500만', coin: '떨어지는 코인을 톡톡! · 최대 +500만', updown: '🤖 5초 동안 AI보다 많이 터치! · 최대 +500만' };
+    var GI = { quiz: '❓', coin: '🪙', updown: '👆' }, GD = { quiz: 'OX 3문제 모두 맞히면 · 최대 +1,000만', coin: '떨어지는 코인을 전부 톡톡! · 최대 +1,000만', updown: '🤖 5초 동안 AI보다 많이 터치! · 최대 +1,000만' };
     $('qGames').innerHTML = S.games.map(function (g) {
       return '<button class="q' + (g.done ? ' done' : '') + '" type="button" data-game="' + g.key + '"' + (g.done ? ' disabled' : '') + '><span class="ic">' + GI[g.key] + '</span>' +
-        '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (g.done ? '완료 · 점수 ' + g.score : GD[g.key]) + '</span></span><span class="st' + (g.done ? ' done' : '') + '">' + (g.done ? 'CLEAR' : 'PLAY') + '</span></button>';
+        '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (g.done ? '완료 · 성공률 ' + g.score + '%' : GD[g.key]) + '</span></span><span class="st' + (g.done ? ' done' : '') + '">' + (g.done ? 'CLEAR' : 'PLAY') + '</span></button>';
     }).join('');
     $('qBooths').innerHTML = S.booths.map(function (b) {
       return '<div class="q' + (b.done ? ' done' : '') + '"><span class="ic">🎯</span><span class="tx"><b>' + esc(b.name) + '</b><span>' + esc(b.desc || '') + ' · +' + man(b.reward) + '</span></span><span class="st' + (b.done ? ' done' : '') + '">' + (b.done ? 'CLEAR' : 'QR') + '</span></div>';
@@ -2221,7 +2223,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       if (ev.secret) html += '<p class="note"><b style="color:var(--royal);font-size:20px">MISSION COMPLETE! 🎉</b><br>SECRET REWARD UNLOCKED<br>+' + man(ev.secretReward || 0) + ' 추가 투자금 · 경품 추첨권</p><button class="btn" type="button" data-close="chars">🎁 리워드 보기</button>';
       else html += '<p class="note">남은 캐릭터 ' + (ev.total - ev.found) + '마리! 계속 찾아보세요</p><button class="btn" type="button" data-close="chars">캐릭터 도감 보기</button>';
     } else {
-      html += rewardTxt(ev) + '<p class="note">' + (ev.score != null ? '점수 ' + ev.score + '점! ' : '') + '추가 투자금으로 더 투자할 수 있어요</p>' +
+      html += rewardTxt(ev) + '<p class="note">' + (ev.score != null ? '성공률 ' + ev.score + '%! ' : '') + '추가 투자금으로 더 투자할 수 있어요</p>' +
         '<button class="btn" type="button" data-close="co">💸 투자하러 가기</button><button class="btn white" type="button" data-close="">닫기</button>';
     }
     if (!/data-close/.test(html)) html += '<button class="btn" type="button" data-close="">확인</button>';
@@ -2256,7 +2258,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     gameRunning = true;
     function show() {
       var q = qs[i];
-      modal('<span class="eyebrow">WARM-UP GAME · OX 퀴즈</span><div class="quiz-n">Q' + (i + 1) + ' / 3</div><div class="quiz-q">' + esc(q[0]) + '</div>' +
+      modal('<span class="eyebrow">WARM-UP GAME · LV.3 OX 퀴즈</span><div class="quiz-n">Q' + (i + 1) + ' / 3</div><div class="quiz-q">' + esc(q[0]) + '</div>' +
         '<div class="ox"><button class="o" type="button" data-ans="1">O</button><button class="x" type="button" data-ans="0">X</button></div><div class="quiz-fb" id="qfb"></div>');
       Array.prototype.forEach.call(document.querySelectorAll('[data-ans]'), function (b) {
         b.addEventListener('click', function () {
@@ -2273,7 +2275,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     function finish() {
       gameRunning = false;
       modal('<span class="eyebrow">OX 퀴즈 결과</span><h3>' + score + ' / 3 정답!</h3><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
-      call({ action: 'game', game: 'quiz', score: score, rid: rid() }).catch(function () { closeModal(); });
+      call({ action: 'game', game: 'quiz', score: Math.round(score / 3 * 100), rid: rid() }).catch(function () { closeModal(); });
     }
     show();
   }
@@ -2289,7 +2291,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
         '<b style="width:38px;font-size:20px;text-align:right">' + n + '</b></div>';
     }
     function bars() { var el = $('tapBars'); if (el) el.innerHTML = bar('🙋 나', me, '#d9e021') + bar('🤖 AI', bot, '#12a8f0'); }
-    modal('<span class="eyebrow">WARM-UP GAME · 🤖 AI와 연타 대결!</span>' +
+    modal('<span class="eyebrow">WARM-UP GAME · LV.2 🤖 AI와 연타 대결!</span>' +
       '<div class="quiz-q" style="min-height:0;margin:8px 0">5초 동안 AI보다<br>버튼을 더 많이 누르면 승리!</div>' +
       '<div id="tapBars"></div><div class="quiz-n" id="tapTime" style="font-size:22px;margin:6px 0">준비됐나요?</div>' +
       '<button class="btn" id="tapBtn" type="button" style="min-height:130px;font-size:34px;touch-action:manipulation;user-select:none;-webkit-user-select:none">START!</button>');
@@ -2322,8 +2324,8 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       gameRunning = false;
       bot = Math.floor(T * rate);
       var win = me > bot, close = !win && me >= bot * 0.8;
-      var score = win ? 5 : close ? 3 : 1;
-      var vs = win ? '🏆 AI를 이겼어요!' : close ? '😲 아깝다! 조금만 더!' : '🤖 AI가 이겼어요… 다음엔 꼭!';
+      var score = win ? 100 : bot ? Math.min(99, Math.floor(me / bot * 100)) : 0;
+      var vs = win ? '🏆 AI를 이겼어요! 성공률 100%' : close ? '😲 아깝다! 성공률 ' + score + '%' : '🤖 AI가 이겼어요… 성공률 ' + score + '%';
       modal('<span class="eyebrow">AI 대결 결과</span><h3>' + vs + '</h3><p class="note">나 <b>' + me + '번</b> : <b>' + bot + '번</b> AI</p><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
       call({ action: 'game', game: 'updown', score: score, rid: rid() }).catch(function () { closeModal(); });
     }
@@ -2332,12 +2334,12 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   /* ---------- WARM-UP: 코인 캐치 ---------- */
   function playCoin() {
     gameRunning = true;
-    modal('<span class="eyebrow">WARM-UP GAME · 코인 캐치</span><h3 style="font-size:26px">떨어지는 코인을 톡톡!</h3>' +
+    modal('<span class="eyebrow">WARM-UP GAME · LV.1 코인 캐치</span><h3 style="font-size:26px">떨어지는 코인을 하나도 놓치지 마세요!</h3>' +
       '<div class="arena" id="arena"><div style="position:absolute;inset:0;display:grid;place-items:center"><button class="btn" type="button" id="cStart" style="width:auto;padding:0 28px">START!</button></div></div>' +
       '<div class="hud"><span>🪙 <b id="cScore">0</b></span><span id="cTime">10.0</span></div>');
     $('cStart').addEventListener('click', function () {
       this.parentNode.remove();
-      var arena = $('arena'), W = arena.clientWidth, H = arena.clientHeight, score = 0, t0 = performance.now(), coins = [], last = 0;
+      var arena = $('arena'), W = arena.clientWidth, H = arena.clientHeight, score = 0, missed = 0, t0 = performance.now(), coins = [], last = 0;
       arena.addEventListener('pointerdown', function (e) {
         var b = e.target.closest('.cn');
         if (!b || b.dataset.hit) return;
@@ -2349,10 +2351,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       function frame(t) {
         var el = (t - t0) / 1000, left = Math.max(0, 10 - el);
         $('cTime').textContent = left.toFixed(1);
-        if (t - last > 330 - Math.min(180, el * 18)) {
+        if (t - last > 600 - Math.min(150, el * 15)) {
           last = t;
           var c = document.createElement('button'); c.type = 'button'; c.className = 'cn'; c.innerHTML = COIN_SVG; c.setAttribute('aria-label', '코인');
-          c._x = Math.random() * (W - 48); c._y = -48; c._v = 120 + Math.random() * 120 + el * 14;
+          c._x = Math.random() * (W - 48); c._y = -48; c._v = 110 + Math.random() * 70 + el * 8;
           c.style.left = c._x + 'px'; c.style.top = c._y + 'px';
           arena.appendChild(c); coins.push(c);
         }
@@ -2360,16 +2362,17 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
           var c2 = coins[i];
           if (!c2.isConnected) { coins.splice(i, 1); continue; }
           c2._y += c2._v / 60; c2.style.top = c2._y + 'px';
-          if (c2._y > H) { c2.remove(); coins.splice(i, 1); }
+          if (c2._y > H) { c2.remove(); coins.splice(i, 1); missed++; }
         }
-        if (left > 0) requestAnimationFrame(frame); else end(score);
+        if (left > 0) requestAnimationFrame(frame); else end(score, missed);
       }
       requestAnimationFrame(frame);
     });
-    function end(score) {
+    function end(score, missed) {
       gameRunning = false;
-      modal('<span class="eyebrow">코인 캐치 결과</span><h3>🪙 ' + score + '개!</h3><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
-      call({ action: 'game', game: 'coin', score: score, rid: rid() }).catch(function () { closeModal(); });
+      var pct = score + missed ? Math.floor(score / (score + missed) * 100) : 0;
+      modal('<span class="eyebrow">코인 캐치 결과</span><h3>🪙 ' + score + '개 · 성공률 ' + pct + '%</h3><p class="note">놓친 코인 ' + missed + '개</p><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
+      call({ action: 'game', game: 'coin', score: pct, rid: rid() }).catch(function () { closeModal(); });
     }
   }
 
