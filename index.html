@@ -342,7 +342,7 @@ body.has-hnav main { padding-top: 56px; }
     </div>
     <button class="btn" type="button" id="avNext" style="margin-top:16px">이 캐릭터로 결정!</button>
     <div class="avopts" id="avOpts"></div>
-    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-I</p>
+    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-J</p>
   </section>
 
   <!-- 닉네임 + 비밀번호 -->
@@ -828,6 +828,27 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 }
   };
   var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
+  var HF_DIV_RATES = [10, 8, 6, 4, 2]; // 배당률(%) : 1위 ~ 5위 기업
+
+  /** 배당 계산: 지금 1~5위 기업에 투자한 금액 × 배당률 (만원 단위, 버림) */
+  function hfDividendPlan(agg, rates) {
+    rates = rates || HF_DIV_RATES;
+    var ranks = [], pay = {}, total = 0, people = 0;
+    (agg.startups || []).filter(function (s) { return !s.extra && s.amount > 0; }).slice(0, rates.length).forEach(function (s, i) {
+      var rate = rates[i];
+      ranks.push({ rank: i + 1, name: s.name, rate: rate });
+      (s.investorList || []).forEach(function (iv) {
+        var man = Math.floor(iv.amount * rate / 100 / 10000);
+        if (man <= 0) return;
+        var k = hfNorm(iv.id);
+        var e = pay[k] || (pay[k] = { id: iv.id, man: 0, items: [] });
+        if (!e.items.length) people++;
+        e.man += man; total += man;
+        e.items.push({ name: s.name, rank: i + 1, rate: rate, invested: Math.floor(iv.amount / 10000), man: man });
+      });
+    });
+    return { ranks: ranks, pay: pay, total: total, people: people };
+  }
   var HF_STEPS = [
     ['CHECKIN', 'CHECK-IN'], ['AVATAR', 'MAKE YOUR AVATAR'], ['GET', '₩100M GET'], ['WARMUP', 'WARM-UP GAME'],
     ['DISCOVER', 'DISCOVER'], ['INVEST', 'INVEST'], ['PLAY', 'PLAY & EARN'], ['FIND', 'FIND THE CHARACTER'],
@@ -878,7 +899,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     }
 
     var wOpt = function () {
-      var b = {}; b[hfNorm(pl.id)] = st.budget + (pl.bonus || 0) * 10000;
+      var b = {}; b[hfNorm(pl.id)] = st.budget + ((pl.bonus || 0) + (pl.div || 0)) * 10000;
       return { budget: st.budget, budgets: b, startups: st.startups.map(function (s) { return s.name; }), policy: st.policy, closedAt: S.status.closedAt };
     };
     var rows = null;
@@ -960,7 +981,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     out.created = !!created;
     out.event = ev;
     out.status = S.status.status;
-    out.player = { id: pl.id, no: pl.no, bonus: pl.bonus || 0, cap: st.cap || HF_REWARD.cap, sns: pl.sns || '', avatar: action === 'join' ? S.getAvatar(pl) : undefined };
+    out.player = { id: pl.id, no: pl.no, bonus: pl.bonus || 0, div: pl.div || 0, cap: st.cap || HF_REWARD.cap, sns: pl.sns || '', avatar: action === 'join' ? S.getAvatar(pl) : undefined };
     out.steps = HF_STEPS.map(function (s) { return { key: s[0], name: s[1], done: !!m[s[0]] }; });
     out.games = Object.keys(HF_GAMES).map(function (k) { var r = m['G_' + k]; return { key: k, name: HF_GAMES[k].name, done: !!r, score: r && r.score }; });
     out.booths = booths.map(function (x) { return { key: x.key, name: x.name, reward: x.reward, desc: x.desc, done: !!m[x.key] }; });
@@ -975,6 +996,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       return { name: s.name, tag: x.tag, tags: x.tags, line: x.line, team: x.team, rank: s.rank, amount: s.amount, investors: s.investors };
     });
     out.totals = { amount: agg.totals.amount, investors: agg.totals.investors };
+    var dl = S.dividend ? S.dividend() : null;
+    if (dl && dl.round) out.dividend = { round: dl.round, at: dl.at, ranks: dl.ranks, total: dl.total, people: dl.people, auto: !!dl.auto, mine: (m.D && m.D['r' + dl.round]) || 0, myTotal: pl.div || 0 };
+    else out.dividend = { round: 0, auto: !!(dl && dl.auto), myTotal: pl.div || 0 };
     return out;
   }
   // </aggregate> -----------------------------------------------------------
@@ -1146,6 +1170,8 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var base = role === 'admin' ? agg : hfPublic(agg, C.SHOW_FULL_NAMES);
     base.ok = true; base.mode = 'mock'; base.status = d.status; base.closedAt = d.closedAt;
     base.serverTime = Date.now(); base.paused = !!d.paused;
+    base.dividend = d.divLast || { round: 0, auto: !!d.divAuto };
+    if (role === 'admin') { base.dividend.auto = !!d.divAuto; base.dividend.history = d.divHist || []; base.dividend.rates = HF_DIV_RATES; }
     return base;
   }
 
@@ -1159,7 +1185,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   }
   function mockBudgets(d) {
     var b = {};
-    Object.keys(d.accounts || {}).forEach(function (k) { var a = d.accounts[k]; if (a.bonus) b[k] = (C.BUDGET || 1e8) + a.bonus * 10000; });
+    Object.keys(d.accounts || {}).forEach(function (k) { var a = d.accounts[k]; if (a.bonus || a.div) b[k] = (C.BUDGET || 1e8) + ((a.bonus || 0) + (a.div || 0)) * 10000; });
     return b;
   }
   function mockInvestCall(p) {
@@ -1178,7 +1204,8 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
         getAvatar: function (pl) { return d.avatars[hfNorm(pl.id)] || ''; },
         rows: function () { return d.rows.slice(); },
         appendInvest: function (id, startup, man) { d.rows.push({ ts: Date.now(), id: id, startup: startup, amount: man * 10000 }); },
-        agg: function () { return hfAggregate(d.rows, { budget: st.budget, budgets: mockBudgets(d), startups: st.startups.map(function (s) { return s.name; }), policy: st.policy, closedAt: d.closedAt }); }
+        agg: function () { return hfAggregate(d.rows, { budget: st.budget, budgets: mockBudgets(d), startups: st.startups.map(function (s) { return s.name; }), policy: st.policy, closedAt: d.closedAt }); },
+        dividend: function () { return d.divLast || { round: 0, auto: !!d.divAuto }; }
       };
       var out = hfAppHandle(p.action, p, S);
       mockSave(d);
@@ -1243,6 +1270,30 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
         return Promise.resolve({ ok: true, status: status });
       }
       return apiGet({ action: 'setStatus', status: status, key: HF.adminKey() });
+    },
+
+    // 관리자: 배당 지급 / 자동 배당 켜기·끄기
+    adminAction: function (params) {
+      if (isGas) return gasCall(Object.assign({ key: BOOT.adminKey }, params));
+      if (isMock) {
+        var d = mockLoad(); d.accounts = d.accounts || {};
+        if (params.action === 'divAuto') { d.divAuto = params.on === '1' || params.on === true; if (d.divLast) d.divLast.auto = d.divAuto; mockSave(d); return Promise.resolve({ ok: true, auto: d.divAuto }); }
+        if (params.action === 'dividend') {
+          if (d.status !== 'OPEN') return Promise.reject(new Error('투자 진행 중일 때만 배당을 줄 수 있어요.'));
+          var agg = hfAggregate(d.rows, { budget: C.BUDGET, budgets: mockBudgets(d), startups: STARTUP_NAMES, policy: C.OVER_LIMIT_POLICY, closedAt: d.closedAt });
+          var plan = hfDividendPlan(agg);
+          var round = ((d.divLast && d.divLast.round) || 0) + 1;
+          Object.keys(plan.pay).forEach(function (k) {
+            var a = d.accounts[k]; if (!a) return;
+            a.div = (a.div || 0) + plan.pay[k].man; a.m = a.m || {}; a.m.D = a.m.D || {}; a.m.D['r' + round] = plan.pay[k].man;
+          });
+          var info = { round: round, at: Date.now(), ranks: plan.ranks, total: plan.total, people: plan.people, auto: !!d.divAuto, source: 'manual' };
+          d.divLast = info; d.divHist = [info].concat(d.divHist || []).slice(0, 24); mockSave(d);
+          var r = JSON.parse(JSON.stringify(info)); r.ok = true; return Promise.resolve(r);
+        }
+        return Promise.reject(new Error('알 수 없는 요청'));
+      }
+      return apiGet(Object.assign({ key: HF.adminKey() }, params)).then(function (r) { return r; });
     },
 
     mock: {
@@ -1897,6 +1948,23 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   $('wcGo').addEventListener('click', function () { go('home'); claimPending(); });
 
   /* ---------- 렌더 ---------- */
+  var DIVKEY = 'hf26_div_seen';
+  function checkDividendNews() {
+    var dv = S && S.dividend;
+    if (!dv || !dv.round) return;
+    var seen = Number(store.get(DIVKEY + '_' + (me && me.id)) || 0);
+    if (dv.round <= seen) return;
+    store.set(DIVKEY + '_' + (me && me.id), String(dv.round));
+    if (dv.mine > 0) {
+      var parts = (dv.ranks || []).map(function (r) { return r.rank + '위 ' + esc(r.name) + ' ' + r.rate + '%'; }).join('<br>');
+      setTimeout(function () {
+        modal('<span class="eyebrow">DIVIDEND · 제' + dv.round + '회 배당</span><h3>📈 배당금 +' + man(dv.mine) + '!</h3><p class="note">1~5위 기업에 투자한 금액만큼 배당을 받았어요.<br>받은 배당금으로 또 투자할 수 있어요!</p><p class="note" style="font-size:13px">' + parts + '</p><button class="btn" type="button" data-close>좋아요!</button>');
+        try { coinRain(18); } catch (e) { /* ignore */ }
+      }, 600);
+    } else if (seen) {
+      toast('💰 제' + dv.round + '회 배당이 지급됐어요! 1~5위 기업에 투자하면 다음 배당을 받아요');
+    }
+  }
   function render() {
     if (!S || !me) return;
     var rem = Math.max(0, S.remaining), budget = S.budget, used = S.invested, pl = S.player;
@@ -1912,7 +1980,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('hMeter').style.width = Math.max(0, Math.min(100, rem / budget * 100)) + '%';
     $('hUsed').textContent = '투자 ' + eokTxt(used) + ' · ' + S.count + '건';
     $('hGiven').textContent = '총 ' + eokTxt(budget);
-    $('hBonus').hidden = !pl.bonus; $('hBonus').textContent = '+' + man(pl.bonus) + ' 보너스';
+    var plus = (pl.bonus || 0) + (pl.div || 0);
+    $('hBonus').hidden = !plus; $('hBonus').textContent = '+' + man(plus) + (pl.div ? ' 보너스·배당' : ' 보너스');
+    checkDividendNews();
     var nx = nextAction(rem, closed);
     $('nxTitle').innerHTML = nx[0]; $('nxSub').textContent = nx[1]; $('nxBtn').textContent = nx[2]; $('nxBtn').dataset.go = nx[3];
     var found = S.characters.filter(function (c) { return c.found; }).length;
@@ -2053,8 +2123,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     HF.countTo($('myBal'), rem, HF.won, 800);
     $('myMeter').style.width = Math.max(0, Math.min(100, rem / S.budget * 100)) + '%';
     $('myUsed').textContent = '투자 ' + eokTxt(S.invested) + ' · ' + S.count + '건';
-    $('myGiven').textContent = '1억 + 보너스 ' + man(pl.bonus);
-    $('myBonus').hidden = !pl.bonus; $('myBonus').textContent = '+' + man(pl.bonus);
+    $('myGiven').textContent = '1억 + 보너스 ' + man(pl.bonus) + (pl.div ? ' + 배당 ' + man(pl.div) : '');
+    var plusM = (pl.bonus || 0) + (pl.div || 0);
+    $('myBonus').hidden = !plusM; $('myBonus').textContent = '+' + man(plusM);
     $('myFinal').hidden = !(rem > 0 && S.invested > 0 && S.status === 'OPEN');
     var by = S.by || {}, keys = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; });
     var top = {}; (S.top3 || []).forEach(function (n, i) { top[n] = i + 1; });
@@ -2069,6 +2140,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     }).join('') : '<li class="empty">투자 기록이 여기에 쌓여요</li>';
     var rw = [];
     rw.push('💰 미션 추가 투자금 <b>+' + man(pl.bonus) + '</b>');
+    rw.push('📈 받은 배당금 <b>+' + man(pl.div || 0) + '</b>' + (S.dividend && S.dividend.auto ? ' · 매시 정각 1~5위 기업 투자자에게 지급' : ''));
     if (S.secret) rw.push('🎁 SECRET REWARD 쿠폰 <b>' + esc(S.secret.coupon) + '</b> (안내 데스크에서 교환)');
     if (S.shot) rw.push('📸 HIGH FIVE SHOT 이벤트 응모 완료');
     rw.push('🏅 스탬프 ' + S.steps.filter(function (s) { return s.done; }).length + '/12');
