@@ -259,6 +259,11 @@ ul.pf { margin: 0; padding: 0; }
 .podium div em { font-style: normal; font-family: var(--f-num); font-size: 15px; }
 
 /* 하단 탭 */
+.hnav { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); left: 10px; right: 10px; z-index: 12; display: flex; justify-content: space-between; pointer-events: none; }
+.hnav button { pointer-events: auto; font: inherit; font-weight: 900; font-size: 15px; padding: 9px 16px; border: 3px solid var(--ink); border-radius: 999px; background: #fff; color: var(--ink); box-shadow: 0 3px 0 var(--ink); cursor: pointer; }
+.hnav button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.hnav button[hidden] { display: inline-block !important; visibility: hidden; }
+body.has-hnav main { padding-top: 56px; }
 .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: #fff; border-top: 3px solid var(--ink); padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); }
 .nav div { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .nav button { border: 0; background: transparent; padding: 6px 2px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 900; font-size: 12px; color: var(--muted); }
@@ -337,7 +342,7 @@ ul.pf { margin: 0; padding: 0; }
     </div>
     <button class="btn" type="button" id="avNext" style="margin-top:16px">이 캐릭터로 결정!</button>
     <div class="avopts" id="avOpts"></div>
-    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-E</p>
+    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-F</p>
   </section>
 
   <!-- 닉네임 + 비밀번호 -->
@@ -498,6 +503,7 @@ ul.pf { margin: 0; padding: 0; }
   <section id="sLoading" hidden><div style="padding:120px 0;text-align:center"><span class="spin"></span></div></section>
 </main>
 
+<div class="hnav" id="hnav" hidden><button type="button" id="navBack" aria-label="뒤로 가기">◀ 뒤로</button><button type="button" id="navFwd" aria-label="앞으로 가기">앞으로 ▶</button></div>
 <nav class="nav" id="nav" hidden>
   <div>
     <button type="button" data-go="home" class="on"><i>🏠</i>HOME</button>
@@ -1333,19 +1339,53 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   function screen(id) {
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
     $('nav').hidden = !/^t/.test(id);
+    curScreen = id;
+    updHnav();
     window.scrollTo(0, 0);
   }
+
+  /* ---------- 뒤로·앞으로 (휴대폰 뒤로가기 제스처와도 연결) ---------- */
+  var hist = [], hpos = -1, histLock = false, curScreen = '';
+  function pushView(k) {
+    if (histLock) return;
+    if (hpos >= 0 && hist[hpos] === k) { updHnav(); return; }
+    if (hpos < 0) { hist = [k]; hpos = 0; try { history.replaceState({ hf: 0 }, ''); } catch (e) {} }
+    else { hist = hist.slice(0, hpos + 1); hist.push(k); hpos = hist.length - 1; try { history.pushState({ hf: hpos }, ''); } catch (e) {} }
+    updHnav();
+  }
+  function showView(k) {
+    histLock = true;
+    try { closeModal(); } catch (e) {}
+    if (k === 'avatar') openAvatarChange(); else go(k);
+    histLock = false;
+    updHnav();
+  }
+  function updHnav() {
+    var on = !!me && hpos >= 0 && (/^t/.test(curScreen) || (curScreen === 'sAvatar' && avatarMode === 'change'));
+    var canB = hpos > 0, canF = hpos < hist.length - 1;
+    $('hnav').hidden = !on || (!canB && !canF);
+    $('navBack').hidden = !canB; $('navFwd').hidden = !canF;
+    document.body.classList.toggle('has-hnav', !$('hnav').hidden);
+  }
+  window.addEventListener('popstate', function (e) {
+    if (!e.state || typeof e.state.hf !== 'number' || !hist[e.state.hf] || !me) return;
+    hpos = e.state.hf; showView(hist[hpos]);
+  });
+  $('navBack').addEventListener('click', function () { if (hpos > 0) { try { history.back(); } catch (e) { hpos--; showView(hist[hpos]); } } });
+  $('navFwd').addEventListener('click', function () { if (hpos < hist.length - 1) { try { history.forward(); } catch (e) { hpos++; showView(hist[hpos]); } } });
   function go(t) {
     tab = t; screen(TABS[t]);
     Array.prototype.forEach.call(document.querySelectorAll('.nav button'), function (b) { b.classList.toggle('on', b.dataset.go === t || (t === 'chars' && b.dataset.go === 'quest') || (t === 'result' && b.dataset.go === 'home')); });
     if (t === 'co' && S && !stepDone('DISCOVER')) call({ action: 'stamp', key: 'DISCOVER' }, true);
     if (t === 'my' && S && !stepDone('MY')) call({ action: 'stamp', key: 'MY' }, true);
     render();
+    pushView(t);
   }
+  function openAvatarChange() { avatarMode = 'change'; setAvatarPreview(''); $('avNext').textContent = '이 아바타로 바꾸기'; screen('sAvatar'); pushView('avatar'); }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-go]');
     if (b && me) {
-      if (b.dataset.go === 'avatar') { avatarMode = 'change'; setAvatarPreview(''); $('avNext').textContent = '이 아바타로 정하기'; screen('sAvatar'); return; }
+      if (b.dataset.go === 'avatar') { openAvatarChange(); return; }
       go(b.dataset.go);
     }
   });
@@ -1377,11 +1417,11 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     hairColor: [['#2b2838', '검정'], ['#6b4430', '갈색'], ['#f0c75e', '금발'], ['#d9573f', '빨강'], ['#4a63d0', '파랑'], ['#f08cbc', '핑크'], ['#d6dae6', '은색']],
     skin: [['#ffe7d6', '밝은'], ['#f6cfae', '보통'], ['#c98b62', '어두운']],
     glasses: [['none', '없음'], ['round', '동그란 안경'], ['square', '네모 안경'], ['sun', '선글라스']],
-    outfit: [['tee', '티셔츠'], ['stripe', '줄무늬 니트'], ['hoodie', '후드티'], ['suit', '정장'], ['fest', '페스티벌 후드']],
-    hat: [['none', '없음'], ['cap', '캡모자'], ['beanie', '비니']],
+    outfit: [['tee', '티셔츠'], ['pajama', '잠옷'], ['stripe', '줄무늬 니트'], ['hoodie', '후드티'], ['suit', '정장'], ['fest', '페스티벌 후드']],
+    hat: [['none', '없음'], ['cap', '캡모자'], ['beanie', '비니'], ['sheep', '양'], ['cat', '고양이'], ['dog', '강아지'], ['pig', '돼지'], ['cow', '소'], ['bear', '곰'], ['rabbit', '토끼']],
     face: [['smile', '활짝'], ['happy', '방긋'], ['wink', '윙크'], ['cool', '시크']],
     bg: [['dots', '도트'], ['stripe', '줄무늬'], ['check', '체크'], ['star', '반짝']],
-    outfitColor: [['#232b52', '남색'], ['#3445a0', '로열'], ['#0aa0e8', '하늘'], ['#0b6b3a', '초록'], ['#e5484d', '빨강'], ['#2b2838', '검정'], ['#f4f4f4', '흰색'], ['#f2a33a', '주황'], ['#b9a3e3', '보라']]
+    outfitColor: [['#232b52', '남색'], ['#3445a0', '로열'], ['#0aa0e8', '하늘'], ['#0b6b3a', '초록'], ['#e5484d', '빨강'], ['#2b2838', '검정'], ['#f4f4f4', '흰색'], ['#f2a33a', '주황'], ['#f5d63d', '노랑'], ['#f6a5c0', '핑크'], ['#b9a3e3', '보라']]
   };
   var av = null;
   function pickR(a) { return a[Math.floor(Math.random() * a.length)][0]; }
@@ -1406,7 +1446,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var HF = darkHair ? INK : shade(HC, .42);
     var SKF = o.skin === '#ffe7d6' ? '#fff' : shade(o.skin, .3);
     var OC = o.outfitColor, ocn = parseInt(OC.slice(1), 16), ocL = .299 * (ocn >> 16) + .587 * ((ocn >> 8) & 255) + .114 * (ocn & 255);
-    var OF = OC === '#2b2838' ? INK : OC === '#f4f4f4' ? '#fff' : ocL < 100 ? OC : shade(OC, .45), darkOut = ocL < 100;
+    var OF = OC === '#2b2838' ? INK : OC === '#f4f4f4' ? '#fff' : ocL < 100 ? OC : shade(OC, .3), darkOut = ocL < 100;
     var face = o.face || 'smile', bg = o.bg || 'dots';
     var st = ' stroke="' + INK + '" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"';
     var thin = ' stroke="' + INK + '" stroke-width="2" fill="none" stroke-linecap="round"';
@@ -1430,7 +1470,8 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     if (o.hair === 'pony') s += '<path d="M138 62 C182 66 186 124 164 168 C156 140 152 112 136 92 Z"' + hairFill + '/><circle cx="141" cy="68" r="6" fill="#fff"' + st + '/>';
     if (o.hair === 'twin') s += '<path d="M60 84 C20 92 16 146 36 178 C44 150 48 124 66 104 Z"' + hairFill + '/><path d="M140 84 C180 92 184 146 164 178 C156 150 152 124 134 104 Z"' + hairFill + '/>' +
       '<circle cx="60" cy="86" r="6" fill="#fff"' + st + '/><circle cx="140" cy="86" r="6" fill="#fff"' + st + '/>';
-    if (o.hair === 'bun') s += '<circle cx="100" cy="30" r="19"' + hairFill + '/>';
+    var hatOn = o.hat && o.hat !== 'none';
+    if (o.hair === 'bun' && !hatOn) s += '<circle cx="100" cy="30" r="19"' + hairFill + '/>';
     var strandC = darkHair ? '#fff' : INK;
     if (o.hair === 'long') s += '<path d="M60 130 Q62 160 66 190 M140 130 Q138 160 134 190" stroke="' + strandC + '" stroke-width="2" fill="none" stroke-linecap="round"/>';
     if (o.hair === 'twin') s += '<path d="M40 120 Q34 140 38 162 M160 120 Q166 140 162 162" stroke="' + strandC + '" stroke-width="2" fill="none" stroke-linecap="round"/>';
@@ -1443,6 +1484,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       '<path d="M34 204 C36 172 58 158 100 156 C142 158 164 172 166 204"' + st + ' fill="none"/>';
     s += '<path d="M88 134 L88 160 Q100 166 112 160 L112 134 Z" fill="' + SKF + '"' + st + '/>';
     if (o.outfit === 'stripe') s += '<path d="M80 158 Q100 174 120 158"' + st + ' fill="' + SKF + '"/><path d="M78 160 Q100 180 122 160"' + st.replace(INK, oc2).replace('3.6', '2.2') + ' fill="none"/>';
+    if (o.outfit === 'pajama') s += '<clipPath id="cp' + u + '"><path d="M34 204 C36 172 58 158 100 156 C142 158 164 172 166 204 Z"/></clipPath>' +
+      '<g clip-path="url(#cp' + u + ')" fill="#fff" opacity=".9"><circle cx="56" cy="182" r="3"/><circle cx="72" cy="196" r="3"/><circle cx="66" cy="172" r="2.4"/><circle cx="134" cy="172" r="2.4"/><circle cx="146" cy="190" r="3"/><circle cx="126" cy="198" r="3"/></g>' +
+      '<path d="M84 157 L100 166 L88 178 Z M116 157 L100 166 L112 178 Z" fill="#fff"' + st.replace('3.6', '2.8') + '/>' +
+      '<path d="M100 166 L100 204"' + thin + '/><g fill="#fff" stroke="' + INK + '" stroke-width="1.8"><circle cx="100" cy="182" r="3"/><circle cx="100" cy="195" r="3"/></g>';
     if (o.outfit === 'tee') s += '<path d="M82 158 Q100 176 118 158"' + st + ' fill="' + SKF + '"/><path d="M58 186 L62 204 M142 186 L138 204"' + thin.replace(INK, oc2) + '/>';
     if (o.outfit === 'hoodie' || o.outfit === 'fest') s += '<path d="M62 168 Q100 196 138 168 Q130 156 112 156 Q100 170 88 156 Q70 156 62 168 Z" fill="' + OF + '"' + st + '/>' +
       '<path d="M90 178 L88 198 M110 178 L112 198"' + st.replace('3.6', '2.6').replace(INK, oc2) + '/><circle cx="88" cy="200" r="2.6" fill="' + oc2 + '"/><circle cx="112" cy="200" r="2.6" fill="' + oc2 + '"/>';
@@ -1486,16 +1531,43 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       pony: 'M54 108 C46 54 74 32 100 32 C126 32 154 54 146 108 L140 112 C140 96 138 86 134 80 L126 90 L120 76 L110 88 L100 74 L92 88 L84 78 L76 90 L68 80 C62 90 60 100 60 112 Z'
     };
     bang.bun = bang.twin = bang.pony;
+    if (hatOn) {
+      if (o.hair !== 'buzz') s += '<path d="M55 104 C52 92 56 86 64 84 L66 104 Z M145 104 C148 92 144 86 136 84 L134 104 Z"' + hairFill + '/>';
+    } else {
     s += '<path d="' + (bang[o.hair] || bang.short) + '"' + hairFill + '/>';
     if (o.hair === 'buzz') s += '<g fill="' + strandC + '"><circle cx="80" cy="54" r="1.3"/><circle cx="92" cy="50" r="1.3"/><circle cx="106" cy="50" r="1.3"/><circle cx="120" cy="54" r="1.3"/><circle cx="86" cy="60" r="1.3"/><circle cx="114" cy="60" r="1.3"/><circle cx="100" cy="57" r="1.3"/></g>';
     else if (o.hair === 'curly') s += '<path d="M70 62 q6 -6 10 0 M96 46 q6 -6 10 0 M122 60 q6 -6 10 0 M84 74 q5 -5 9 0 M110 72 q5 -5 9 0" stroke="' + strandC + '" stroke-width="2" fill="none" stroke-linecap="round"/>';
     else s += '<path d="M80 44 Q74 56 74 70 M98 38 Q94 50 96 64 M116 40 Q122 52 122 66 M132 52 Q138 62 138 76" stroke="' + strandC + '" stroke-width="2" fill="none" stroke-linecap="round"' + (darkHair ? ' opacity=".8"' : '') + '/>';
+    }
 
-    // 모자
-    if (o.hat === 'cap') s += '<path d="M52 86 C50 36 150 36 148 86 Z" fill="' + INK + '"' + st + '/><path d="M100 44 L100 82 M76 52 Q80 66 78 82 M124 52 Q120 66 122 82" stroke="#fff" stroke-width="1.6" fill="none" opacity=".5"/>' +
-      '<path d="M50 82 Q100 72 150 82 Q157 92 146 99 Q100 113 54 99 Q43 92 50 82 Z" fill="' + INK + '"' + st + '/><path d="M60 97 Q100 108 140 97" stroke="#fff" stroke-width="1.8" fill="none" opacity=".6"/>';
-    if (o.hat === 'beanie') s += '<path d="M50 86 C46 24 154 24 150 86 Z" fill="' + HF.replace(INK, '#fff') + '"' + st + '/><path d="M70 40 L70 84 M85 34 L85 84 M100 32 L100 84 M115 34 L115 84 M130 40 L130 84"' + thin + '/>' +
-      '<rect x="46" y="74" width="108" height="18" rx="9" fill="#fff"' + st + '/><circle cx="100" cy="24" r="10" fill="#fff"' + st + '/>';
+    // 모자 (머리를 모두 덮음)
+    if (o.hat === 'cap') s += '<path d="M48 90 C44 6 156 6 152 90 Z" fill="' + INK + '"' + st + '/><path d="M100 30 L100 84 M74 40 Q80 62 76 86 M126 40 Q120 62 124 86" stroke="#fff" stroke-width="1.6" fill="none" opacity=".5"/><circle cx="100" cy="26" r="4" fill="' + INK + '" stroke="#fff" stroke-width="1.2"/>' +
+      '<path d="M46 84 Q100 72 154 84 Q160 94 148 101 Q100 115 52 101 Q40 94 46 84 Z" fill="' + INK + '"' + st + '/><path d="M58 99 Q100 110 142 99" stroke="#fff" stroke-width="1.8" fill="none" opacity=".6"/>';
+    if (o.hat === 'beanie') s += '<path d="M48 90 C44 8 156 8 152 90 Z" fill="' + HF.replace(INK, '#fff') + '"' + st + '/><path d="M70 36 L70 84 M85 30 L85 84 M100 28 L100 84 M115 30 L115 84 M130 36 L130 84"' + thin + '/>' +
+      '<rect x="44" y="76" width="112" height="18" rx="9" fill="#fff"' + st + '/><circle cx="100" cy="20" r="10" fill="#fff"' + st + '/>';
+    var ANI = { sheep: '#fffaf0', cat: '#d8d8d8', dog: '#e2b27a', pig: '#f7b8ca', cow: '#ffffff', bear: '#b07d4f', rabbit: '#ffffff' }[o.hat];
+    if (ANI) {
+      var hood = 'M44 100 C38 4 162 4 156 100 Q100 86 44 100 Z', inner = '#ffb3c3';
+      // 귀 (먼저 그려서 모자 뒤로)
+      if (o.hat === 'cat') s += '<path d="M50 58 L46 14 L84 34 Z M150 58 L154 14 L116 34 Z" fill="' + ANI + '"' + st + '/><path d="M54 48 L52 26 L72 38 Z M146 48 L148 26 L128 38 Z" fill="' + inner + '"/>';
+      if (o.hat === 'pig') s += '<path d="M54 46 L50 16 L80 32 Z M146 46 L150 16 L120 32 Z" fill="' + ANI + '"' + st + '/>';
+      if (o.hat === 'bear') s += '<circle cx="56" cy="30" r="15" fill="' + ANI + '"' + st + '/><circle cx="144" cy="30" r="15" fill="' + ANI + '"' + st + '/><circle cx="56" cy="30" r="7" fill="#e8c39a"/><circle cx="144" cy="30" r="7" fill="#e8c39a"/>';
+      if (o.hat === 'rabbit') s += '<path d="M76 36 C62 6 70 0 79 2 C88 4 92 18 90 34 Z M124 36 C138 6 130 0 121 2 C112 4 108 18 110 34 Z" fill="' + ANI + '"' + st + '/><path d="M79 30 C72 14 76 8 80 9 C85 11 86 20 85 30 Z M121 30 C128 14 124 8 120 9 C115 11 114 20 115 30 Z" fill="' + inner + '"/>';
+      if (o.hat === 'cow') s += '<path d="M62 30 C54 16 58 6 66 8 C64 16 68 22 74 26 Z M138 30 C146 16 142 6 134 8 C136 16 132 22 126 26 Z" fill="#f3e2b8"' + st.replace('3.6', '2.8') + '/><ellipse cx="40" cy="58" rx="14" ry="7" fill="' + ANI + '"' + st + ' transform="rotate(-20 40 58)"/><ellipse cx="160" cy="58" rx="14" ry="7" fill="' + ANI + '"' + st + ' transform="rotate(20 160 58)"/>';
+      if (o.hat === 'sheep') s += '<ellipse cx="38" cy="66" rx="13" ry="7" fill="#f3d9c0"' + st + ' transform="rotate(-25 38 66)"/><ellipse cx="162" cy="66" rx="13" ry="7" fill="#f3d9c0"' + st + ' transform="rotate(25 162 66)"/>' +
+        [[48, 90], [44, 70], [50, 50], [62, 34], [80, 24], [100, 20], [120, 24], [138, 34], [150, 50], [156, 70], [152, 90]].map(function (c) { return '<circle cx="' + c[0] + '" cy="' + c[1] + '" r="13" fill="' + ANI + '"' + st + '/>'; }).join('');
+      // 모자 본체
+      s += '<path d="' + hood + '" fill="' + ANI + '"' + (o.hat === 'sheep' ? '' : st) + '/>';
+      if (o.hat === 'sheep') s += '<path d="M46 98 Q100 84 154 98"' + st + ' fill="none"/><path d="M78 40 q6 -6 12 0 M108 40 q6 -6 12 0 M92 30 q6 -6 12 0" ' + thin.slice(1) + '/>';
+      if (o.hat === 'dog') s += '<path d="M48 36 C26 40 24 84 36 100 C50 96 56 72 58 48 Z M152 36 C174 40 176 84 164 100 C150 96 144 72 142 48 Z" fill="#9a6a3c"' + st + '/>';
+      if (o.hat === 'cow') s += '<path d="M60 40 q12 -8 20 4 q-4 12 -18 8 Z M120 30 q14 -4 18 10 q-10 8 -20 -2 Z" fill="' + INK + '"/>';
+      // 모자 얼굴 (눈·코)
+      s += '<circle cx="84" cy="52" r="3.4" fill="' + INK + '"/><circle cx="116" cy="52" r="3.4" fill="' + INK + '"/>';
+      if (o.hat === 'pig') s += '<ellipse cx="100" cy="68" rx="12" ry="8" fill="#f59ab3"' + st.replace('3.6', '2.6') + '/><circle cx="96" cy="68" r="2" fill="' + INK + '"/><circle cx="104" cy="68" r="2" fill="' + INK + '"/>';
+      else if (o.hat === 'cow') s += '<ellipse cx="100" cy="70" rx="14" ry="8" fill="#f7c6d0"' + st.replace('3.6', '2.6') + '/><circle cx="95" cy="70" r="1.8" fill="' + INK + '"/><circle cx="105" cy="70" r="1.8" fill="' + INK + '"/>';
+      else if (o.hat === 'sheep') s += '<path d="M97 62 L103 62 L100 66 Z" fill="' + INK + '"/>';
+      else s += '<path d="M96 62 L104 62 L100 67 Z" fill="' + INK + '"/>' + (o.hat === 'cat' ? '<path d="M70 64 L82 66 M70 70 L82 70 M130 64 L118 66 M130 70 L118 70"' + thin.replace('stroke-width="2"', 'stroke-width="1.6"') + '/>' : '');
+    }
     // 안경
     if (o.glasses === 'round') s += '<circle cx="81" cy="108" r="14" fill="none"' + st.replace('3.6', '3') + '/><circle cx="119" cy="108" r="14" fill="none"' + st.replace('3.6', '3') + '/><path d="M95 106 Q100 102 105 106"' + thin + '/>';
     if (o.glasses === 'square') s += '<rect x="65" y="96" width="32" height="24" rx="5" fill="none"' + st.replace('3.6', '3') + '/><rect x="103" y="96" width="32" height="24" rx="5" fill="none"' + st.replace('3.6', '3') + '/><path d="M97 104 L103 104"' + thin + '/>';
@@ -1714,6 +1786,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var b = e.target.closest('[data-k]');
     if (!b) return;
     av[b.dataset.k] = b.dataset.v;
+    if (b.dataset.k === 'outfit' && b.dataset.v === 'pajama') av.outfitColor = '#f6a5c0';
     if (b.dataset.k === 'gender') av.hair = (av.gender === 'm' ? AV.hairM : AV.hairF)[0][0];
     renderAvatarMaker();
   });
@@ -1830,7 +1903,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   function nextAction(rem, closed) {
     if (S.status === 'FINAL') return ['결과 발표!<br>투자왕은 누구?', '최종 순위를 확인해 보세요', '👑 결과 보기', 'result'];
     if (closed) return ['투자 마감!', '곧 투자왕을 발표해요', '내 포트폴리오 보기', 'my'];
-    if (!stepDone('AVATAR')) return ['나만의 투자자<br>아바타 만들기', '셀카 한 장이면 픽셀 아바타 완성!', '📸 아바타 만들기', 'avatar'];
+    if (!stepDone('AVATAR')) return ['나만의 투자자<br>아바타 만들기', '셀카 한 장이면 내 캐릭터 완성!', '📸 아바타 만들기', 'avatar'];
     if (!stepDone('INVEST')) return ['첫 투자를<br>해볼까요?', '부스를 둘러보고 마음에 드는 기업에 투자해요', '💸 기업 찾으러 가기', 'co'];
     if (!stepDone('WARMUP')) return ['워밍업 게임하고<br>투자금 더 받기', '30초면 끝! 최대 +500만원', '🎮 게임하러 가기', 'quest'];
     if (rem > 0 && S.count < 3) return ['다른 기업도<br>찾아봐요', '남은 투자금 ' + eokTxt(rem), '🔍 기업 더 보기', 'co'];
@@ -1969,7 +2042,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('myRewards').innerHTML = rw.map(function (x) { return '<div style="padding:4px 0;font-weight:700">' + x + '</div>'; }).join('');
   }
   $('myFinal').addEventListener('click', function () { go('co'); });
-  $('myAvBtn').addEventListener('click', function () { avatarMode = 'change'; setAvatarPreview(''); $('avNext').textContent = '이 아바타로 바꾸기'; screen('sAvatar'); });
+  $('myAvBtn').addEventListener('click', function () { openAvatarChange(); });
 
   /* ----- 결과 ----- */
   function renderResult() {
@@ -2128,7 +2201,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   }
 
   /* ---------- 로그아웃·새로고침 ---------- */
-  function logout() { me = null; S = null; store.del(KEY); store.del(AVKEY); avatar = ''; $('uid').value = ''; $('upin').value = ''; screen('sIntro'); }
+  function logout() { hist = []; hpos = -1; me = null; S = null; store.del(KEY); store.del(AVKEY); avatar = ''; $('uid').value = ''; $('upin').value = ''; screen('sIntro'); }
   $('logoutBtn').addEventListener('click', logout);
   document.addEventListener('visibilitychange', function () { if (!document.hidden && me) call({ action: 'wallet' }, true).catch(function () {}); });
   setInterval(function () { if (me && !document.hidden && $('dim').hidden) call({ action: 'wallet' }, true).catch(function () {}); }, 30000);
