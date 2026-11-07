@@ -418,6 +418,65 @@ body.no-led .bar::after { display: none; }
 .more ol.kings li .kd { padding-left: 40px; }
 .more ol.kings li .kd { gap: 9px; padding-left: 34px; font-size: 14px; }
 
+.stats-row { display: contents; }
+/* =================== 세로 전광판 (1080 × 1920) =================== */
+.portrait #stage { width: 1080px; height: 1920px; }
+.portrait .hd { left: 48px; right: 48px; top: 40px; height: 320px; }
+.portrait .hd-meta { flex-wrap: wrap; height: auto; row-gap: 8px; }
+.portrait .hd-sub { flex-basis: 100%; font-size: 18px; }
+.portrait .hd-title { font-size: 104px; margin-top: 18px; }
+.portrait .hd-kr { font-size: 34px; margin-top: 14px; }
+.portrait .mascot { left: 690px; top: 236px; }
+.portrait .bubble { left: 440px; top: 300px; }
+.portrait .ledge { left: 48px; width: 984px; top: 500px; }
+.portrait .board { left: 48px; top: 524px; width: 984px; height: 712px; }
+.portrait .side { left: 48px; right: 48px; top: 1262px; height: 570px;
+  display: grid; grid-template-columns: 380px 1fr; grid-template-rows: auto 1fr; column-gap: 36px; }
+.portrait .stat-pair { grid-column: 1; grid-row: 1; }
+.portrait .stat.total { grid-column: 1; grid-row: 2; border-bottom: 0; }
+.portrait .num.big { font-size: 84px; }
+.portrait .more { grid-column: 2; grid-row: 1 / span 2; padding-top: 0; border-left: 3px dashed rgba(18,168,240,.35); padding-left: 30px; }
+.portrait .more ol.kings li .n { font-size: 30px; }
+.portrait .more ol.kings li:first-child .n { font-size: 34px; }
+.portrait .more ol.kings li { padding-top: 6px; padding-bottom: 6px; }
+.portrait .more ol.kings li .kd { font-size: 16px; gap: 12px; }
+.portrait .kr-rule { white-space: normal; }
+.portrait .ticker { height: 88px; }
+.portrait .final-head h2 { font-size: 92px; }
+.portrait .winner { top: 260px; }
+.portrait .podium { left: 48px; right: 48px; bottom: 150px; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.portrait #divBanner { width: 980px; padding: 40px 36px 44px; }
+.portrait #divBanner .db-t { font-size: 62px; }
+.portrait .side { grid-template-columns: 340px 1fr; column-gap: 28px; }
+.portrait .num.big { font-size: 72px; }
+.portrait .more { padding-left: 24px; min-width: 0; }
+.portrait .more ol.kings li .kd { font-size: 15px; gap: 4px 10px; flex-wrap: wrap; padding-left: 40px; }
+.portrait .kr-lbl { display: none; }
+.portrait .winner { top: 420px; }
+.portrait .ks-main, .portrait .ks-main.has-av { top: 380px; }
+.portrait .ks-main .ks-by { flex-wrap: wrap; justify-content: center; max-width: 980px; }
+.portrait .final-foot { height: 110px; flex-direction: column; gap: 4px; font-size: 36px; }
+.portrait .final-foot span { font-size: 24px; }
+.portrait .podium { bottom: 160px; }
+/* 세로: 위 = 기업 순위, 아래 = 투자왕 순위(가로 전체), 통계는 한 줄 */
+.portrait .side { display: flex; flex-direction: column; top: 1256px; height: 576px; }
+.portrait .stats-row { display: flex; align-items: flex-end; gap: 28px; padding-bottom: 10px; border-bottom: 3px dashed rgba(18,168,240,.35); }
+.portrait .stat-pair { flex: none; display: flex; gap: 28px; padding: 0; border: 0; }
+.portrait .stat-pair .num b { font-size: 64px; }
+.portrait .stat.total { flex: 1; padding: 0; border: 0; text-align: right; }
+.portrait .stat.total .num.big { font-size: 64px; margin-top: 0; }
+.portrait .stat.total .full { font-size: 20px; margin-top: 0; }
+.portrait .more { border-left: 0; padding-left: 0; padding-top: 12px; }
+.portrait .kr-lbl { display: inline; }
+.portrait .kr-rule { white-space: nowrap; }
+.portrait .more ol.kings li { padding-top: 4px; padding-bottom: 4px; }
+.portrait .more ol.kings li .kd { flex-wrap: nowrap; font-size: 16px; gap: 14px; padding-left: 40px; }
+.portrait .ticker { height: 76px; }
+.portrait .side { top: 1250px; height: 594px; }
+.portrait .more { padding-top: 8px; }
+.portrait .more ol.kings li { padding-top: 2px; padding-bottom: 2px; }
+.portrait .stat .lbl { font-size: 18px; }
+
 </style>
 <style>
 :root {
@@ -485,6 +544,7 @@ body.no-led .bar::after { display: none; }
 
     <!-- 오른쪽 통계 -->
     <aside class="side">
+      <div class="stats-row">
       <div class="stat-pair">
         <div class="stat">
           <span class="lbl">INVESTORS</span>
@@ -499,6 +559,7 @@ body.no-led .bar::after { display: none; }
         <span class="lbl">TOTAL INVESTMENT</span>
         <span class="num big led-text" id="totalCompact">₩0</span>
         <span class="full"><span id="totalFull">₩0</span> <em id="totalEok"></em></span>
+      </div>
       </div>
       <div class="more">
         <div class="tabs"><span class="kr-title">👑 투자왕 순위</span><span class="kr-lbl">TOP3 기업 투자 합계 순</span></div>
@@ -894,11 +955,14 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     { code: 'M-MJSZZ', type: 'mission', key: 'M3', name: '체험 미션 3', reward: 1000, desc: '부스 체험을 마치고 QR 을 찍어요', hint: '' }
   ];
   var HF_GAMES = {
-    quiz: { name: 'AI 스타트업 OX 퀴즈', tiers: [[3, 500], [2, 300], [0, 100]], max: 3 },
-    coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 },
-    updown: { name: 'AI와 연타 대결!', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
+    // 점수 = 성공률(%) · 100% 성공 1,000만 / 10% 떨어질 때마다 100만씩 줄어듦
+    coin: { name: 'LV.1 코인 캐치 10초', max: 100 },
+    updown: { name: 'LV.2 AI와 연타 대결!', max: 100 },
+    quiz: { name: 'LV.3 AI 스타트업 OX 퀴즈', max: 100 }
   };
   var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
+  /** 웜업 게임 보상(만원): 성공률 100% → 1,000만, 10% 떨어질 때마다 100만씩 감소 */
+  function hfGameReward(pct) { pct = Math.max(0, Math.min(100, Math.floor(Number(pct) || 0))); return Math.floor(pct / 10) * 100; }
   var HF_SECRET_NEED = 3; // 캐릭터 몇 마리 찾으면 SECRET REWARD (쉽게: 5마리 중 3마리)
   var HF_STEPS = [
     ['CHECKIN', 'CHECK-IN'], ['AVATAR', 'MAKE YOUR AVATAR'], ['GET', '₩100M GET'], ['WARMUP', 'WARM-UP GAME'],
@@ -1007,8 +1071,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
         ev = { type: 'game', title: '이미 참여한 게임이에요', again: true };
       } else {
         var score = Math.max(0, Math.min(g.max, Math.floor(Number(p.score) || 0)));
-        var tier = 0;
-        for (var t = 0; t < g.tiers.length; t++) if (score >= g.tiers[t][0]) { tier = g.tiers[t][1]; break; }
+        var tier = hfGameReward(score);
         stamp('G_' + p.game, { ts: now, score: score });
         stamp('WARMUP');
         ev = { type: 'game', title: g.name + ' 완료!', score: score, reward: give(tier) };
@@ -1458,8 +1521,14 @@ if (!document.documentElement.classList.contains('need-setup')) {
 
   /* ---------- 스테이지 스케일 (어떤 해상도의 LED/모니터든 꽉 차게) ---------- */
   var stage = $('stage');
+  // 세로 전광판: board-vertical.html 또는 주소 뒤에 ?v=1
+  var PORTRAIT = document.documentElement.classList.contains('portrait') || /[?&]v=1\b/.test(location.search);
+  if (PORTRAIT) document.documentElement.classList.add('portrait');
+  var SW = PORTRAIT ? 1080 : 1920, SH = PORTRAIT ? 1920 : 1080;
+  ['fx', 'confetti'].forEach(function (id) { var c = $(id); if (c) { c.width = SW; c.height = SH; } });
+  if (PORTRAIT) { var bgs = document.querySelector('.bg-stripes'); if (bgs) bgs.setAttribute('preserveAspectRatio', 'xMaxYMax slice'); }
   function fit() {
-    var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    var s = Math.min(window.innerWidth / SW, window.innerHeight / SH);
     stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
   }
   window.addEventListener('resize', fit); fit();
@@ -1500,7 +1569,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
     // 배경에 반짝이는 LED 별빛
     for (var t = 0; t < 46; t++) {
       var sz = 2 + Math.random() * 4;
-      html += '<i class="twk" style="left:' + (Math.random() * 1920).toFixed(0) + 'px;top:' + (Math.random() * 1000).toFixed(0) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) +
+      html += '<i class="twk" style="left:' + (Math.random() * SW).toFixed(0) + 'px;top:' + (Math.random() * (SH - 80)).toFixed(0) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) +
         'px;--t:' + (1.6 + Math.random() * 2.4).toFixed(2) + 's;--d:-' + (Math.random() * 4).toFixed(2) + 's"></i>';
     }
     d.innerHTML = html;
@@ -1622,7 +1691,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
       nk.textContent = 'NEW 1위! ' + leader;
       $('rows').appendChild(nk);
       setTimeout(function () { nk.remove(); }, 2700);
-      fx.burst(760, 420, 140);
+      fx.burst(PORTRAIT ? 540 : 760, PORTRAIT ? 640 : 420, 140);
       mascot.cheer();
     }
     if (leader) prevLeader = leader;
@@ -1662,6 +1731,24 @@ if (!document.documentElement.classList.contains('need-setup')) {
     setTimeout(function () { s.remove(); }, 1150);
   }, 260);
 
+  /* ---------- 시간별 투자자 TOP5 발표 카운트다운 (한국 시간 기준) ---------- */
+  var PRIZE_HOURS = [14, 15, 16, 17], prizeDone = {};
+  function prizeCountdown() {
+    if (curStatus !== 'OPEN') return null;
+    var k = new Date(Date.now() + 9 * 3600e3), h = k.getUTCHours(), m = k.getUTCMinutes(), sec = k.getUTCSeconds();
+    for (var i = 0; i < PRIZE_HOURS.length; i++) {
+      var H = PRIZE_HOURS[i];
+      if (prizeDone[H]) continue;
+      var name = H === 17 ? '최종 투자왕 TOP5' : H + '시 투자자 TOP5';
+      if (H === h) return { min: 0, html: '⏰ ' + name + '<br><b>곧 발표해요!</b>' };
+      if (H < h) continue;
+      var left = Math.ceil(((H - h) * 3600 - m * 60 - sec) / 60);
+      var t = left >= 60 ? Math.floor(left / 60) + '시간' + (left % 60 ? ' ' + (left % 60) + '분' : '') : left + '분';
+      return { min: left, html: '⏰ ' + name + ' 발표까지<br><b>' + t + '</b> 남았어요!' };
+    }
+    return null;
+  }
+
   /* ---------- 마스코트 (포스터 황소 캐릭터) ---------- */
   var mascot = (function () {
     var el = $('mascot'), bub = $('bubble'), txt = $('bubbleText');
@@ -1678,8 +1765,14 @@ if (!document.documentElement.classList.contains('need-setup')) {
       bub.classList.remove('pop'); void bub.offsetWidth; bub.classList.add('pop');
       busyUntil = Date.now() + (ms || 5000);
     }
+    var tick = 0;
     setInterval(function () {
-      if (Date.now() < busyUntil || !ideas.length) return;
+      if (Date.now() < busyUntil) return;
+      tick++;
+      // 시간별 투자자 TOP5 발표까지 남은 시간 (2번에 1번, 5분 이내면 매번)
+      var cd = prizeCountdown();
+      if (cd && (cd.min <= 5 || tick % 2 === 0)) { say(cd.html, 6500, cd.min <= 5); if (cd.min <= 5) play('hop'); return; }
+      if (!ideas.length) return;
       idleIdx = (idleIdx + 1) % ideas.length;
       say(ideas[idleIdx], 6500, false);
       if (Math.random() < .5) play('hop');
@@ -1697,11 +1790,11 @@ if (!document.documentElement.classList.contains('need-setup')) {
     var cv = $('fx'), ctx = cv.getContext('2d'), parts = [], raf = 0;
     var cols = ['#d9e021', '#12a8f0', '#ffffff', '#ffd23a', '#2f45c8'];
     function frame() {
-      ctx.clearRect(0, 0, 1920, 1080);
+      ctx.clearRect(0, 0, SW, SH);
       for (var i = parts.length - 1; i >= 0; i--) {
         var p = parts[i];
         p.vy += .38; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--;
-        if (p.life <= 0 || p.y > 1100) { parts.splice(i, 1); continue; }
+        if (p.life <= 0 || p.y > SH + 20) { parts.splice(i, 1); continue; }
         ctx.save(); ctx.globalAlpha = Math.min(1, p.life / 30); ctx.translate(p.x, p.y); ctx.rotate(p.r);
         ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
       }
@@ -1936,8 +2029,8 @@ if (!document.documentElement.classList.contains('need-setup')) {
     function spawn(burst) {
       var coin = Math.random() < 0.22;
       parts.push({
-        x: burst ? 960 + (Math.random() - .5) * 200 : Math.random() * 1920,
-        y: burst ? 520 : -40,
+        x: burst ? SW / 2 + (Math.random() - .5) * 200 : Math.random() * SW,
+        y: burst ? SH * .48 : -40,
         vx: burst ? (Math.random() - .5) * 26 : (Math.random() - .5) * 2,
         vy: burst ? -10 - Math.random() * 16 : 2 + Math.random() * 3,
         r: Math.random() * Math.PI, vr: (Math.random() - .5) * .3,
@@ -1947,7 +2040,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
     }
     function frame(t) {
       if (!running) return;
-      ctx.clearRect(0, 0, 1920, 1080);
+      ctx.clearRect(0, 0, SW, SH);
       if (t - t0 < 9000 && parts.length < 420) for (var k = 0; k < 4; k++) spawn(false);
       else if (parts.length < 160) spawn(false);
       for (var i = parts.length - 1; i >= 0; i--) {
@@ -1973,7 +2066,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
         for (var i = 0; i < 160; i++) spawn(true);
         t0 = performance.now();
       },
-      stop: function () { running = false; cancelAnimationFrame(raf); ctx.clearRect(0, 0, 1920, 1080); parts = []; }
+      stop: function () { running = false; cancelAnimationFrame(raf); ctx.clearRect(0, 0, SW, SH); parts = []; }
     };
   })();
 
@@ -2018,7 +2111,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
     }).join('') || '<span>이번 회차 대상자가 없어요</span>';
     $('dbSum').innerHTML = (r.winners || []).length ? '축하합니다! <b>안내 데스크</b>에서 상품을 받아 가세요 🎉' : '';
     var b = $('divBanner'); b.hidden = false; void b.offsetWidth; b.classList.add('show');
-    try { fx.burst(960, 420, 200); mascot.cheer(); mascot.say(r.hour + '시 TOP5 발표!<br>축하해요!', 16000, true); } catch (e) { /* ignore */ }
+    try { fx.burst(SW / 2, PORTRAIT ? 900 : 420, 200); mascot.cheer(); mascot.say(r.hour + '시 TOP5 발표!<br>축하해요!', 16000, true); } catch (e) { /* ignore */ }
     clearTimeout(divTimer);
     divTimer = setTimeout(function () { b.classList.remove('show'); setTimeout(function () { b.hidden = true; }, 450); }, 30000);
   }
@@ -2033,7 +2126,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
       $('dbRanks').innerHTML = '<span style="font-size:56px;padding:16px 40px"><b>' + esc(last.id) + '</b></span>';
       $('dbSum').innerHTML = '미션 4 응모자 ' + HF.int(last.pool || 0) + '명 중 당첨! <b>안내 데스크</b>에서 선물을 받아 가세요 🎉';
       var b = $('divBanner'); b.hidden = false; void b.offsetWidth; b.classList.add('show');
-      try { fx.burst(960, 420, 200); mascot.cheer(); mascot.say('추첨 당첨!<br><b>' + esc(last.id) + '</b>님', 16000, true); } catch (e) { /* ignore */ }
+      try { fx.burst(SW / 2, PORTRAIT ? 900 : 420, 200); mascot.cheer(); mascot.say('추첨 당첨!<br><b>' + esc(last.id) + '</b>님', 16000, true); } catch (e) { /* ignore */ }
       clearTimeout(divTimer);
       divTimer = setTimeout(function () { b.classList.remove('show'); setTimeout(function () { b.hidden = true; }, 450); }, 25000);
     }
@@ -2060,6 +2153,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
     renderMore(list);
     renderKings(data.kings, data.top3);
     renderLatest(data.recent);
+    if (data.prizes && data.prizes.rounds) { prizeDone = {}; data.prizes.rounds.forEach(function (r) { if (r.at) prizeDone[r.hour] = 1; }); }
     // 말풍선: 현재 투자왕 닉네임 소개
     var king1 = (data.kings || [])[0];
     if (king1) {
