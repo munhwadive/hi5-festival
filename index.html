@@ -342,7 +342,7 @@ body.has-hnav main { padding-top: 56px; }
     </div>
     <button class="btn" type="button" id="avNext" style="margin-top:16px">이 캐릭터로 결정!</button>
     <div class="avopts" id="avOpts"></div>
-    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-M</p>
+    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-P</p>
   </section>
 
   <!-- 닉네임 + 비밀번호 -->
@@ -826,7 +826,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   var HF_GAMES = {
     quiz: { name: 'AI 스타트업 OX 퀴즈', tiers: [[3, 500], [2, 300], [0, 100]], max: 3 },
     coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 },
-    updown: { name: 'AI와 대결! 주가 UP & DOWN', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
+    updown: { name: 'AI와 대결! 가위바위보', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
   };
   var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
   var HF_SECRET_NEED = 3; // 캐릭터 몇 마리 찾으면 SECRET REWARD (쉽게: 5마리 중 3마리)
@@ -1480,6 +1480,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     hairColor: [['#2b2838', '검정'], ['#6b4430', '갈색'], ['#f0c75e', '금발'], ['#d9573f', '빨강'], ['#4a63d0', '파랑'], ['#f08cbc', '핑크'], ['#d6dae6', '은색']],
     skin: [['#ffe7d6', '밝은'], ['#f6cfae', '보통'], ['#c98b62', '어두운']],
     glasses: [['none', '없음'], ['round', '동그란 안경'], ['square', '네모 안경'], ['sun', '선글라스']],
+    beard: [['none', '없음'], ['mustache', '콧수염'], ['curl', '멋쟁이 콧수염'], ['goatee', '턱수염'], ['stubble', '까칠 수염'], ['full', '덥수룩 수염']],
     outfit: [['tee', '티셔츠'], ['pajama', '잠옷'], ['stripe', '줄무늬 니트'], ['hoodie', '후드티'], ['suit', '정장'], ['fest', '페스티벌 후드']],
     hat: [['none', '없음'], ['cap', '캡모자'], ['beanie', '비니'], ['sheep', '양'], ['cat', '고양이'], ['dog', '강아지'], ['pig', '돼지'], ['cow', '소'], ['bear', '곰'], ['rabbit', '토끼']],
     face: [['smile', '활짝'], ['happy', '방긋'], ['laugh', '깔깔'], ['wink', '윙크'], ['tongue', '메롱'], ['love', '하트 눈'], ['star', '반짝 눈'], ['surprise', '깜짝'], ['fire', '불끈'], ['sleepy', '졸림'], ['cool', '시크']],
@@ -1489,7 +1490,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   var av = null;
   function pickR(a) { return a[Math.floor(Math.random() * a.length)][0]; }
   // 사진도 안 찍고 아무것도 안 골랐을 때 보이는 기본 캐릭터
-  var BASE_AV = { gender: 'm', hair: 'short', hairColor: '#2b2838', skin: '#ffe7d6', glasses: 'none', outfit: 'tee', outfitColor: '#f4f4f4', face: 'smile', bg: 'dots', hat: 'none' };
+  var BASE_AV = { gender: 'm', hair: 'short', hairColor: '#2b2838', skin: '#ffe7d6', glasses: 'none', outfit: 'tee', outfitColor: '#f4f4f4', face: 'smile', bg: 'dots', hat: 'none', beard: 'none' };
   function baseAv() { return JSON.parse(JSON.stringify(BASE_AV)); }
   function randomAv() {
     var g = pickR(AV.gender);
@@ -1596,6 +1597,21 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     // 볼(빗금)·코·입
     s += '<path d="M62 122 l4 -5 M67 123 l4 -5 M72 124 l4 -5 M124 124 l4 -5 M129 123 l4 -5 M134 122 l4 -5"' + thin.replace('stroke-width="2"', 'stroke-width="1.7"') + '/>';
     s += '<path d="M98 116 q4 2 1 5"' + thin + '/>';
+    // 수염 (입보다 먼저 그려서 입이 위에 보이게)
+    var bd = o.beard || 'none';
+    if (bd !== 'none') {
+      var BC = darkHair ? INK : shade(HC, -.1), bst = st.replace('3.6', '2.6');
+      var MUS = '<path d="M100 123 C94 118 84 118 79 125 C86 129 94 128 100 125.5 C106 128 114 129 121 125 C116 118 106 118 100 123 Z" fill="' + BC + '"' + bst + '/>';
+      if (bd === 'full') s += '<path d="M52 106 C50 148 76 172 100 172 C124 172 150 148 148 106 C142 120 132 127 120 127 C117 145 109 152 100 152 C91 152 83 145 80 127 C68 127 58 120 52 106 Z" fill="' + BC + '"' + bst + '/>' +
+        '<path d="M70 146 q4 6 8 2 M92 162 q4 5 8 1 M122 148 q4 6 8 1"' + (darkHair ? ' stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"' : thin) + '/>' + MUS;
+      else if (bd === 'mustache') s += MUS;
+      else if (bd === 'curl') s += '<path d="M100 123 C92 117 83 119 79 125 C75 129 69 126 71 120 C67 128 75 134 85 129 C92 127 97 126 100 125 C103 126 108 127 115 129 C125 134 133 128 129 120 C131 126 125 129 121 125 C117 119 108 117 100 123 Z" fill="' + BC + '"' + bst + '/>';
+      else if (bd === 'goatee') s += '<path d="M89 146 Q100 151 111 146 L108 160 Q100 168 92 160 Z" fill="' + BC + '"' + bst + '/>';
+      else if (bd === 'stubble') {
+        var pts = [[64,132],[70,138],[66,142],[76,146],[72,150],[82,152],[88,156],[96,158],[104,158],[112,156],[118,152],[128,150],[124,146],[134,142],[130,138],[136,132],[90,150],[110,150],[100,154],[80,140],[120,140],[94,124],[100,123],[106,124],[88,123],[112,123]];
+        s += '<g fill="' + INK + '" opacity=".75">' + pts.map(function (p) { return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="1.7"/>'; }).join('') + '</g>';
+      }
+    }
     var st3 = st.replace('3.6', '3');
     if (face === 'cool') s += '<path d="M92 132 Q102 136 110 129"' + st3 + ' fill="none"/>';
     else if (face === 'laugh') s += '<path d="M83 126 Q100 156 117 126 Q100 130 83 126 Z" fill="' + INK + '"' + st3 + '/><path d="M87 128 Q100 131 113 128 L111 133 Q100 135 89 133 Z" fill="#fff"/><path d="M92 143 Q100 136 108 143 Q100 150 92 143 Z" fill="#ff9aa8"/>';
@@ -1788,7 +1804,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       var qx = q.getContext('2d'); qx.fillStyle = '#808080'; qx.fillRect(0, 0, q.width, q.height); qx.drawImage(c, 0, 0);
       return withTimeout(detectFace(q), 45000, '분석이 너무 오래 걸려요. 다시 찍어 주세요 (4)');
     }).then(function (r) {
-      var o = av ? JSON.parse(JSON.stringify(av)) : baseAv(); o.face = 'smile'; o.hat = 'none';
+      var o = av ? JSON.parse(JSON.stringify(av)) : baseAv(); o.face = 'smile'; o.hat = 'none'; o.beard = 'none';
       if (!r) { o.found = false; return o; }
       o.found = true;
       var b = r.detection.box, P = r.landmarks.positions;
@@ -1873,6 +1889,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       '<div class="avg"><b>머리색</b><div>' + avChips('hairColor', AV.hairColor, av.hairColor, true) + '</div></div>' +
       '<div class="avg"><b>모자</b><div>' + avChips('hat', AV.hat, av.hat || 'none') + '</div></div>' +
       '<div class="avg"><b>안경</b><div>' + avChips('glasses', AV.glasses, av.glasses) + '</div></div>' +
+      '<div class="avg"><b>수염</b><div>' + avChips('beard', AV.beard, av.beard || 'none') + '</div></div>' +
       '<div class="avg"><b>의상</b><div>' + avChips('outfit', AV.outfit, av.outfit) + '</div></div>' +
       '<div class="avg"><b>옷 색</b><div>' + avChips('outfitColor', AV.outfitColor, av.outfitColor, true) + '</div></div>' +
       '<div class="avg"><b>피부색</b><div>' + avChips('skin', AV.skin, av.skin, true) + '</div></div>';
@@ -2082,7 +2099,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var pl = S.player;
     $('qBonus').textContent = '+' + man(pl.bonus); $('qCap').textContent = man(pl.cap); $('qCap2').textContent = man(pl.cap);
     $('qMeter').style.width = Math.min(100, pl.bonus / pl.cap * 100) + '%';
-    var GI = { quiz: '❓', coin: '🪙', updown: '📈' }, GD = { quiz: 'OX 3문제 · 최대 +500만', coin: '떨어지는 코인을 톡톡! · 최대 +500만', updown: '🤖 AI와 대결! 주가가 오를까 내릴까? · 최대 +500만' };
+    var GI = { quiz: '❓', coin: '🪙', updown: '✊' }, GD = { quiz: 'OX 3문제 · 최대 +500만', coin: '떨어지는 코인을 톡톡! · 최대 +500만', updown: '🤖 AI와 가위바위보 5판! · 최대 +500만' };
     $('qGames').innerHTML = S.games.map(function (g) {
       return '<button class="q' + (g.done ? ' done' : '') + '" type="button" data-game="' + g.key + '"' + (g.done ? ' disabled' : '') + '><span class="ic">' + GI[g.key] + '</span>' +
         '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (g.done ? '완료 · 점수 ' + g.score : GD[g.key]) + '</span></span><span class="st' + (g.done ? ' done' : '') + '">' + (g.done ? 'CLEAR' : 'PLAY') + '</span></button>';
@@ -2259,47 +2276,43 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     show();
   }
 
-  /* ---------- WARM-UP: 주가 UP & DOWN ---------- */
+  /* ---------- WARM-UP: AI와 가위바위보 (게임 id는 updown 그대로 사용) ---------- */
   function playUpdown() {
-    var names = ((S && S.startups) || []).map(function (x) { return x.name; });
-    if (!names.length) names = ['STARTUP A', 'STARTUP B', 'STARTUP C'];
-    var i = 0, score = 0, ai = 0, N = 5, pts = [];
-    for (var k = 0; k < 8; k++) pts.push(50 + (Math.random() - .5) * 30);
+    var H = [['r', '✊', '바위'], ['s', '✌️', '가위'], ['p', '🖐️', '보']];
+    var BEAT = { r: 's', s: 'p', p: 'r' };
+    var i = 0, score = 0, ai = 0, N = 5;
     gameRunning = true;
-    function chart(list, hl) {
-      var w = 280, h = 120, mn = Math.min.apply(null, list) - 5, mx = Math.max.apply(null, list) + 5;
-      var xy = list.map(function (v, j) { return [(j / (list.length - 1)) * (w - 20) + 10, h - 10 - (v - mn) / (mx - mn) * (h - 20)]; });
-      var d = xy.map(function (p, j) { return (j ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
-      var last = xy[xy.length - 1];
-      return '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:auto;background:#0a1456;border-radius:14px;margin:6px 0 12px">' +
-        '<path d="' + d + '" fill="none" stroke="' + (hl || '#d9e021') + '" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>' +
-        '<circle cx="' + last[0] + '" cy="' + last[1] + '" r="6" fill="#fff"/></svg>';
-    }
-    function show() {
-      var nm = names[Math.floor(Math.random() * names.length)];
-      modal('<span class="eyebrow">WARM-UP GAME · 🤖 AI와 대결! 주가 UP &amp; DOWN</span><div class="quiz-n">ROUND ' + (i + 1) + ' / ' + N + ' · 나 ' + score + ' : ' + ai + ' AI</div>' +
-        '<div class="quiz-q" style="min-height:0;margin:8px 0 0">' + esc(nm) + ' 주가, 다음엔?</div>' + chart(pts) +
-        '<div class="ox"><button class="o" type="button" data-ud="1" style="font-size:30px">▲ UP</button><button class="x" type="button" data-ud="0" style="font-size:30px">▼ DOWN</button></div><div class="quiz-fb" id="qfb"></div>');
-      Array.prototype.forEach.call(document.querySelectorAll('[data-ud]'), function (b) {
+    function hand(k) { for (var j = 0; j < 3; j++) if (H[j][0] === k) return H[j]; }
+    function show(msg) {
+      modal('<span class="eyebrow">WARM-UP GAME · 🤖 AI와 대결! 가위바위보</span><div class="quiz-n">ROUND ' + (i + 1) + ' / ' + N + ' · 나 ' + score + ' : ' + ai + ' AI</div>' +
+        '<div class="quiz-q" style="min-height:0;margin:8px 0 4px">' + (msg || 'AI를 이겨라! 무엇을 낼까요?') + '</div>' +
+        '<div id="rpsVs" style="display:flex;justify-content:center;align-items:center;gap:18px;font-size:64px;line-height:1;margin:10px 0 14px"><span>❔</span><b style="font-size:22px">VS</b><span>🤖</span></div>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">' + H.map(function (h) {
+          return '<button class="btn" type="button" data-rps="' + h[0] + '" style="font-size:40px;padding:14px 0;line-height:1.1">' + h[1] + '<br><span style="font-size:16px">' + h[2] + '</span></button>';
+        }).join('') + '</div><div class="quiz-fb" id="qfb"></div>');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-rps]'), function (b) {
         b.addEventListener('click', function () {
           if (b.dataset.locked) return;
-          Array.prototype.forEach.call(document.querySelectorAll('[data-ud]'), function (x) { x.dataset.locked = 1; });
-          var up = Math.random() < .5, ok = (b.dataset.ud === '1') === up;
-          var aiUp = Math.random() < .5, aiOk = aiUp === up; if (aiOk) ai++;
-          var last = pts[pts.length - 1], next = last + (up ? 1 : -1) * (6 + Math.random() * 12);
-          pts.push(next); if (pts.length > 10) pts.shift();
-          if (ok) score++;
-          var svg = document.querySelector('#modal svg'); if (svg) svg.outerHTML = chart(pts, up ? '#21c46b' : '#ff5a6a');
-          $('qfb').innerHTML = (up ? '📈 올랐어요! ' : '📉 내렸어요! ') + '나 ' + (ok ? '⭕' : '❌') + ' · 🤖 AI는 ' + (aiUp ? '▲UP' : '▼DOWN') + ' ' + (aiOk ? '⭕' : '❌');
-          $('qfb').style.color = ok ? 'var(--green)' : 'var(--bad)';
+          Array.prototype.forEach.call(document.querySelectorAll('[data-rps]'), function (x) { x.dataset.locked = 1; x.style.opacity = x === b ? '1' : '.35'; });
+          var me = b.dataset.rps, bot = H[Math.floor(Math.random() * 3)][0];
+          $('rpsVs').innerHTML = '<span>' + hand(me)[1] + '</span><b style="font-size:22px">VS</b><span>' + hand(bot)[1] + '</span>';
+          if (me === bot) {
+            $('qfb').innerHTML = '🤝 비겼어요! 한 번 더!'; $('qfb').style.color = 'var(--ink, #fff)';
+            setTimeout(function () { show('비겼어요! 다시 한 번!'); }, 1200);
+            return;
+          }
+          var win = BEAT[me] === bot;
+          if (win) score++; else ai++;
+          $('qfb').innerHTML = win ? '🎉 이겼어요! ' + hand(me)[2] + ' > ' + hand(bot)[2] : '😵 졌어요… 🤖 AI는 ' + hand(bot)[2];
+          $('qfb').style.color = win ? 'var(--green)' : 'var(--bad)';
           setTimeout(function () { i++; if (i < N) show(); else finish(); }, 1300);
         });
       });
     }
     function finish() {
       gameRunning = false;
-      var vs = score > ai ? '🏆 AI를 이겼어요!' : score === ai ? '🤝 AI와 무승부!' : '🤖 AI가 이겼어요… 다음엔 꼭!';
-      modal('<span class="eyebrow">AI 대결 결과</span><h3>' + vs + '</h3><p class="note">나 <b>' + score + '</b> : <b>' + ai + '</b> AI (5라운드)</p><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
+      var vs = score > ai ? '🏆 AI를 이겼어요!' : '🤖 AI가 이겼어요… 다음엔 꼭!';
+      modal('<span class="eyebrow">AI 대결 결과</span><h3>' + vs + '</h3><p class="note">나 <b>' + score + '</b> : <b>' + ai + '</b> AI (5판)</p><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
       call({ action: 'game', game: 'updown', score: score, rid: rid() }).catch(function () { closeModal(); });
     }
     show();
