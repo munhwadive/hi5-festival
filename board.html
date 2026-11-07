@@ -391,6 +391,12 @@ body.no-led .bar::after { display: none; }
 #divBanner .db-s { margin-top: 24px; font-family: "Noto Sans KR", sans-serif; font-weight: 900; font-size: 30px; }
 #divBanner .db-s b { color: var(--lime); }
 
+/* 투자왕(투자자) 1위 왕관 */
+.more ol.kings li .r { position: relative; }
+.kcrown { display: inline-block; vertical-align: middle; width: 40px; height: 32px; margin-right: 8px; flex: none; }
+.kcrown svg { width: 100%; height: 100%; display: block; }
+.crown svg { width: 100%; height: 100%; }
+
 </style>
 <style>
 :root {
@@ -474,7 +480,7 @@ body.no-led .bar::after { display: none; }
         <span class="full"><span id="totalFull">₩0</span> <em id="totalEok"></em></span>
       </div>
       <div class="more">
-        <div class="tabs"><span class="kr-title">투자자 순위</span><span class="kr-lbl">TOP3 기업 투자 합계</span></div>
+        <div class="tabs"><span class="kr-title">👑 투자왕 순위</span><span class="kr-lbl">TOP3 기업 투자 합계</span></div>
         <ol id="kingList" class="kings"></ol>
       </div>
     </aside>
@@ -503,7 +509,7 @@ body.no-led .bar::after { display: none; }
       </div>
       <div class="winner" id="winner">
         <div class="w-crown" id="wCrown"></div>
-        <span class="w-label">2026 투자왕 · No.1</span>
+        <span class="w-label">2026 투자 1위 기업 · No.1</span>
         <span class="w-name" id="wName">-</span>
         <span class="w-tag" id="wTag"></span>
         <span class="w-amt" id="wAmt">₩0</span>
@@ -866,9 +872,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   var HF_GAMES = {
     quiz: { name: 'AI 스타트업 OX 퀴즈', tiers: [[3, 500], [2, 300], [0, 100]], max: 3 },
     coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 },
-    updown: { name: 'AI와 대결! 주가 UP & DOWN', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
+    updown: { name: 'AI와 대결! 가위바위보', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
   };
   var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
+  var HF_SECRET_NEED = 3; // 캐릭터 몇 마리 찾으면 SECRET REWARD (쉽게: 5마리 중 3마리)
   var HF_STEPS = [
     ['CHECKIN', 'CHECK-IN'], ['AVATAR', 'MAKE YOUR AVATAR'], ['GET', '₩100M GET'], ['WARMUP', 'WARM-UP GAME'],
     ['DISCOVER', 'DISCOVER'], ['INVEST', 'INVEST'], ['PLAY', 'PLAY & EARN'], ['FIND', 'FIND THE CHARACTER'],
@@ -966,7 +973,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
           var chars = missions.filter(function (x) { return x.type === 'character'; });
           var found = chars.filter(function (x) { return pl.m[x.key]; }).length;
           ev.found = found; ev.total = chars.length;
-          if (found === chars.length && stamp('SECRET')) { ev.secret = true; ev.secretReward = give(HF_REWARD.secret); }
+          if (found >= Math.min(HF_SECRET_NEED, chars.length) && stamp('SECRET')) { ev.secret = true; ev.secretReward = give(HF_REWARD.secret); }
         }
       }
     } else if (action === 'game') {
@@ -1452,6 +1459,9 @@ if (!document.documentElement.classList.contains('need-setup')) {
   var CROWN = '<svg viewBox="0 0 84 66"><path d="M6 22 L22 40 L42 8 L62 40 L78 22 L72 58 L12 58 Z" fill="#ffd23a" stroke="#0a1456" stroke-width="5" stroke-linejoin="round"/>' +
     '<circle cx="6" cy="20" r="6" fill="#ffd23a" stroke="#0a1456" stroke-width="4"/><circle cx="42" cy="7" r="6" fill="#ffd23a" stroke="#0a1456" stroke-width="4"/><circle cx="78" cy="20" r="6" fill="#ffd23a" stroke="#0a1456" stroke-width="4"/>' +
     '<path d="M42 34 L48 43 L42 52 L36 43 Z" fill="#12a8f0" stroke="#0a1456" stroke-width="3"/></svg>';
+  var TROPHY = '<svg viewBox="0 0 84 76"><path d="M22 6 H62 V30 C62 44 52 52 42 52 C32 52 22 44 22 30 Z" fill="#ffd23a" stroke="#0a1456" stroke-width="5" stroke-linejoin="round"/>' +
+    '<path d="M22 14 H8 C8 30 16 34 24 34 M62 14 H76 C76 30 68 34 60 34" fill="none" stroke="#0a1456" stroke-width="5"/><rect x="36" y="52" width="12" height="10" fill="#ffd23a" stroke="#0a1456" stroke-width="4"/>' +
+    '<rect x="24" y="62" width="36" height="10" rx="2" fill="#12a8f0" stroke="#0a1456" stroke-width="4"/><text x="42" y="38" text-anchor="middle" font-size="24" font-weight="900" fill="#0a1456" font-family="sans-serif">1</text></svg>';
   var SPARK = function (c) { return '<svg viewBox="0 0 24 24"><path d="M12 0 L14.6 9.4 L24 12 L14.6 14.6 L12 24 L9.4 14.6 L0 12 L9.4 9.4Z" fill="' + c + '"/></svg>'; };
 
   (function deco() {
@@ -1470,8 +1480,8 @@ if (!document.documentElement.classList.contains('need-setup')) {
         'px;--t:' + (1.6 + Math.random() * 2.4).toFixed(2) + 's;--d:-' + (Math.random() * 4).toFixed(2) + 's"></i>';
     }
     d.innerHTML = html;
-    $('wCrown').innerHTML = CROWN.replace('viewBox="0 0 84 66"', 'viewBox="-4 -4 92 70"');
-    $('ksCrown').innerHTML = $('wCrown').innerHTML;
+    $('wCrown').innerHTML = TROPHY.replace('viewBox="0 0 84 76"', 'viewBox="-4 -4 92 84"');
+    $('ksCrown').innerHTML = CROWN.replace('viewBox="0 0 84 66"', 'viewBox="-4 -4 92 70"');
   })();
 
   /* ---------- 티커 ---------- */
@@ -1515,7 +1525,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
       '<div class="rk"><span></span></div>' +
       '<div class="track"><div class="bar">' +
         '<div class="shine"></div><div class="bulbs"></div>' +
-        '<div class="crown">' + CROWN + '</div><span class="king">투자왕</span>' +
+        '<div class="crown">' + TROPHY + '</div><span class="king">1위 기업</span>' +
         '<div class="bar-txt"><div class="nm"><span class="nm-name"></span><span class="nm-tag"></span></div><div class="amt">₩0</div></div>' +
         '<div class="pct">0.0%</div>' +
       '</div></div>' +
@@ -1710,7 +1720,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
       return;
     }
     ol.innerHTML = kings.slice(0, 5).map(function (k) {
-      return '<li><span class="r">' + (k.rank < 10 ? '0' : '') + k.rank + '</span><span class="n">' + ((k.avatar || window.HF_DEFAULT_AVATAR) ? '<img class="kav" alt="" src="' + esc(k.avatar || window.HF_DEFAULT_AVATAR) + '">' : '') + esc(k.id) + '</span>' +
+      return '<li><span class="r">' + (k.rank < 10 ? '0' : '') + k.rank + '</span><span class="n">' + (k.rank === 1 ? '<i class="kcrown">' + CROWN + '</i>' : '') + ((k.avatar || window.HF_DEFAULT_AVATAR) ? '<img class="kav" alt="" src="' + esc(k.avatar || window.HF_DEFAULT_AVATAR) + '">' : '') + esc(k.id) + '</span>' +
         '<span class="a">' + HF.compact(k.score) + '</span></li>';
     }).join('');
   }
@@ -2027,14 +2037,14 @@ if (!document.documentElement.classList.contains('need-setup')) {
     if (king1) {
       var kid = esc(king1.id);
       mascot.setIdeas([
-        '현재 투자자 1등은<br><b>' + kid + '</b>님!',
+        '현재 투자왕은<br><b>' + kid + '</b>님!',
         '1등 <b>' + kid + '</b>님<br>TOP3 투자 ' + HF.compact(king1.score),
         '1등 <b>' + kid + '</b>님을<br>따라잡아라!'
       ]);
-      if (prevKing === null) mascot.say('현재 투자자 1등은<br><b>' + kid + '</b>님!', 6500, false);
+      if (prevKing === null) mascot.say('현재 투자왕은<br><b>' + kid + '</b>님!', 6500, false);
       else if (prevKing !== king1.id && curStatus === 'OPEN') {
         mascot.cheer();
-        mascot.say('1등이 바뀌었어요!<br><b>' + kid + '</b>님', 8000, true);
+        mascot.say('투자왕이 바뀌었어요!<br><b>' + kid + '</b>님', 8000, true);
       }
       prevKing = king1.id;
     } else {
