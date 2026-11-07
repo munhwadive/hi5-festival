@@ -342,7 +342,7 @@ body.has-hnav main { padding-top: 56px; }
     </div>
     <button class="btn" type="button" id="avNext" style="margin-top:16px">이 캐릭터로 결정!</button>
     <div class="avopts" id="avOpts"></div>
-    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-P</p>
+    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1107-R</p>
   </section>
 
   <!-- 닉네임 + 비밀번호 -->
@@ -726,21 +726,23 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     };
 
     // 투자왕: 현재 1~3위 기업에 투자한 금액 합계가 가장 큰 투자자
-    //   동점이면 ① 1위 기업 투자액이 큰 사람 → ② 2위 기업 투자액이 큰 사람 → ③ 먼저 투자를 마친 사람
+    //   동점이면 ① 1위 기업 투자액 → ② 2위 기업 투자액 → ③ 총 투자 금액 → ④ 먼저 투자를 마친 사람
     var top3 = startups.slice(0, 3).filter(function (s) { return s.amount > 0; }).map(function (s) { return s.name; });
     var isTop = {};
     top3.forEach(function (n) { isTop[n] = 1; });
+    //   (TOP3에 투자하지 않은 투자자도 총 투자액 순으로 아래에 나열)
     var ks = {};
     counted.forEach(function (r) {
-      if (!isTop[r.startup]) return;
       var pk = hfNorm(r.id);
-      var k = ks[pk] || (ks[pk] = { id: parts[pk].id, score: 0, by: {}, last: 0, total: parts[pk].total });
+      var k = ks[pk] || (ks[pk] = { id: parts[pk].id, score: 0, by: {}, last: 0, first: r.ts, total: parts[pk].total });
+      if (!isTop[r.startup]) return;
       k.score += r.amount; k.by[r.startup] = (k.by[r.startup] || 0) + r.amount; k.last = r.ts;
     });
     var kings = Object.keys(ks).map(function (k) { return ks[k]; })
       .sort(function (a, b) {
         var t1 = top3[0], t2 = top3[1];
-        return (b.score - a.score) || ((b.by[t1] || 0) - (a.by[t1] || 0)) || ((b.by[t2] || 0) - (a.by[t2] || 0)) || (a.last - b.last);
+        return (b.score - a.score) || ((b.by[t1] || 0) - (a.by[t1] || 0)) || ((b.by[t2] || 0) - (a.by[t2] || 0)) ||
+          ((b.total || 0) - (a.total || 0)) || ((a.last || a.first) - (b.last || b.first));
       })
       .map(function (k, i) { return { rank: i + 1, id: k.id, score: k.score, by: k.by, last: k.last, total: k.total }; });
 
@@ -826,7 +828,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   var HF_GAMES = {
     quiz: { name: 'AI 스타트업 OX 퀴즈', tiers: [[3, 500], [2, 300], [0, 100]], max: 3 },
     coin: { name: '코인 캐치 10초', tiers: [[15, 500], [8, 300], [0, 100]], max: 80 },
-    updown: { name: 'AI와 대결! 가위바위보', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
+    updown: { name: 'AI와 연타 대결!', tiers: [[4, 500], [2, 300], [0, 100]], max: 5 }
   };
   var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
   var HF_SECRET_NEED = 3; // 캐릭터 몇 마리 찾으면 SECRET REWARD (쉽게: 5마리 중 3마리)
@@ -2099,7 +2101,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var pl = S.player;
     $('qBonus').textContent = '+' + man(pl.bonus); $('qCap').textContent = man(pl.cap); $('qCap2').textContent = man(pl.cap);
     $('qMeter').style.width = Math.min(100, pl.bonus / pl.cap * 100) + '%';
-    var GI = { quiz: '❓', coin: '🪙', updown: '✊' }, GD = { quiz: 'OX 3문제 · 최대 +500만', coin: '떨어지는 코인을 톡톡! · 최대 +500만', updown: '🤖 AI와 가위바위보 5판! · 최대 +500만' };
+    var GI = { quiz: '❓', coin: '🪙', updown: '👆' }, GD = { quiz: 'OX 3문제 · 최대 +500만', coin: '떨어지는 코인을 톡톡! · 최대 +500만', updown: '🤖 5초 동안 AI보다 많이 터치! · 최대 +500만' };
     $('qGames').innerHTML = S.games.map(function (g) {
       return '<button class="q' + (g.done ? ' done' : '') + '" type="button" data-game="' + g.key + '"' + (g.done ? ' disabled' : '') + '><span class="ic">' + GI[g.key] + '</span>' +
         '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (g.done ? '완료 · 점수 ' + g.score : GD[g.key]) + '</span></span><span class="st' + (g.done ? ' done' : '') + '">' + (g.done ? 'CLEAR' : 'PLAY') + '</span></button>';
@@ -2276,46 +2278,55 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     show();
   }
 
-  /* ---------- WARM-UP: AI와 가위바위보 (게임 id는 updown 그대로 사용) ---------- */
+  /* ---------- WARM-UP: AI와 연타 대결 (게임 id는 updown 그대로 사용) ---------- */
   function playUpdown() {
-    var H = [['r', '✊', '바위'], ['s', '✌️', '가위'], ['p', '🖐️', '보']];
-    var BEAT = { r: 's', s: 'p', p: 'r' };
-    var i = 0, score = 0, ai = 0, N = 5;
+    var T = 5, me = 0, bot = 0, goal = 40, running = false, timer = null;
+    var rate = 5.6 + Math.random() * 1.8;   // AI 초당 터치 수
     gameRunning = true;
-    function hand(k) { for (var j = 0; j < 3; j++) if (H[j][0] === k) return H[j]; }
-    function show(msg) {
-      modal('<span class="eyebrow">WARM-UP GAME · 🤖 AI와 대결! 가위바위보</span><div class="quiz-n">ROUND ' + (i + 1) + ' / ' + N + ' · 나 ' + score + ' : ' + ai + ' AI</div>' +
-        '<div class="quiz-q" style="min-height:0;margin:8px 0 4px">' + (msg || 'AI를 이겨라! 무엇을 낼까요?') + '</div>' +
-        '<div id="rpsVs" style="display:flex;justify-content:center;align-items:center;gap:18px;font-size:64px;line-height:1;margin:10px 0 14px"><span>❔</span><b style="font-size:22px">VS</b><span>🤖</span></div>' +
-        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">' + H.map(function (h) {
-          return '<button class="btn" type="button" data-rps="' + h[0] + '" style="font-size:40px;padding:14px 0;line-height:1.1">' + h[1] + '<br><span style="font-size:16px">' + h[2] + '</span></button>';
-        }).join('') + '</div><div class="quiz-fb" id="qfb"></div>');
-      Array.prototype.forEach.call(document.querySelectorAll('[data-rps]'), function (b) {
-        b.addEventListener('click', function () {
-          if (b.dataset.locked) return;
-          Array.prototype.forEach.call(document.querySelectorAll('[data-rps]'), function (x) { x.dataset.locked = 1; x.style.opacity = x === b ? '1' : '.35'; });
-          var me = b.dataset.rps, bot = H[Math.floor(Math.random() * 3)][0];
-          $('rpsVs').innerHTML = '<span>' + hand(me)[1] + '</span><b style="font-size:22px">VS</b><span>' + hand(bot)[1] + '</span>';
-          if (me === bot) {
-            $('qfb').innerHTML = '🤝 비겼어요! 한 번 더!'; $('qfb').style.color = 'var(--ink, #fff)';
-            setTimeout(function () { show('비겼어요! 다시 한 번!'); }, 1200);
-            return;
-          }
-          var win = BEAT[me] === bot;
-          if (win) score++; else ai++;
-          $('qfb').innerHTML = win ? '🎉 이겼어요! ' + hand(me)[2] + ' > ' + hand(bot)[2] : '😵 졌어요… 🤖 AI는 ' + hand(bot)[2];
-          $('qfb').style.color = win ? 'var(--green)' : 'var(--bad)';
-          setTimeout(function () { i++; if (i < N) show(); else finish(); }, 1300);
-        });
-      });
+    function bar(lbl, n, col) {
+      return '<div style="display:flex;align-items:center;gap:10px;margin:8px 0"><b style="width:64px;font-size:18px;text-align:left">' + lbl + '</b>' +
+        '<div style="flex:1;height:26px;border-radius:13px;background:#e7e9f5;overflow:hidden"><div style="height:100%;width:' + Math.min(100, n / goal * 100).toFixed(1) + '%;background:' + col + ';transition:width .1s"></div></div>' +
+        '<b style="width:38px;font-size:20px;text-align:right">' + n + '</b></div>';
     }
+    function bars() { var el = $('tapBars'); if (el) el.innerHTML = bar('🙋 나', me, '#d9e021') + bar('🤖 AI', bot, '#12a8f0'); }
+    modal('<span class="eyebrow">WARM-UP GAME · 🤖 AI와 연타 대결!</span>' +
+      '<div class="quiz-q" style="min-height:0;margin:8px 0">5초 동안 AI보다<br>버튼을 더 많이 누르면 승리!</div>' +
+      '<div id="tapBars"></div><div class="quiz-n" id="tapTime" style="font-size:22px;margin:6px 0">준비됐나요?</div>' +
+      '<button class="btn" id="tapBtn" type="button" style="min-height:130px;font-size:34px;touch-action:manipulation;user-select:none;-webkit-user-select:none">START!</button>');
+    bars();
+    var btn = $('tapBtn');
+    btn.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      if (running) { me++; bars(); return; }
+      if (btn.dataset.started) return;
+      btn.dataset.started = 1;
+      var c = 3;
+      btn.textContent = c;
+      var cd = setInterval(function () {
+        c--;
+        if (c > 0) { btn.textContent = c; return; }
+        clearInterval(cd);
+        running = true; btn.textContent = '👆 연타!';
+        var t0 = Date.now();
+        timer = setInterval(function () {
+          var el = (Date.now() - t0) / 1000;
+          bot = Math.floor(el * rate);
+          bars();
+          var left = Math.max(0, T - el);
+          $('tapTime').textContent = '남은 시간 ' + left.toFixed(1) + '초';
+          if (left <= 0) { clearInterval(timer); running = false; finish(); }
+        }, 100);
+      }, 700);
+    });
     function finish() {
       gameRunning = false;
-      var vs = score > ai ? '🏆 AI를 이겼어요!' : '🤖 AI가 이겼어요… 다음엔 꼭!';
-      modal('<span class="eyebrow">AI 대결 결과</span><h3>' + vs + '</h3><p class="note">나 <b>' + score + '</b> : <b>' + ai + '</b> AI (5판)</p><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
+      bot = Math.floor(T * rate);
+      var win = me > bot, close = !win && me >= bot * 0.8;
+      var score = win ? 5 : close ? 3 : 1;
+      var vs = win ? '🏆 AI를 이겼어요!' : close ? '😲 아깝다! 조금만 더!' : '🤖 AI가 이겼어요… 다음엔 꼭!';
+      modal('<span class="eyebrow">AI 대결 결과</span><h3>' + vs + '</h3><p class="note">나 <b>' + me + '번</b> : <b>' + bot + '번</b> AI</p><p class="note"><span class="spin"></span> 보상 받는 중...</p>');
       call({ action: 'game', game: 'updown', score: score, rid: rid() }).catch(function () { closeModal(); });
     }
-    show();
   }
 
   /* ---------- WARM-UP: 코인 캐치 ---------- */
