@@ -520,11 +520,6 @@ body.no-led .bar::after { display: none; }
 .portrait .more ol.kings li .n, .portrait .more ol.kings.pg li:first-child .n { font-size: 30px; }
 .portrait .more ol.kings li:first-child .n { font-size: 33px; }
 .portrait .bubble { top: 272px; left: 400px; }
-
-/* 제목: 한글 크게(LED), 영문은 아래 작은 줄 */
-.hd-title { font-family: var(--f-kr); font-weight: 900; font-size: 104px; letter-spacing: -.02em; line-height: 1.02; }
-.hd-kr .en { font-family: var(--f-num); font-weight: 400; color: #fff; letter-spacing: .02em; }
-.portrait .hd-title { font-size: 80px; }
 /* 총 투자 금액: 원 단위 금액만 크게 */
 .stat.total #totalCompact { display: none; }
 .stat.total .lbl-kr { font-family: var(--f-kr); font-size: 28px; font-weight: 800; letter-spacing: 0; color: var(--cyan); }
@@ -535,6 +530,15 @@ body.no-led .bar::after { display: none; }
 .portrait .stat.total .full em { font-size: 34px; }
 .portrait .more ol.kings { gap: 3px; } .portrait .more ol.kings li { padding-top: 3px; padding-bottom: 3px; } .portrait .stat.total .full { font-size: 46px; }
 .crown { width: 120px; height: 108px; top: -78px; right: 150px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
+/* 세로: 캐릭터~랭킹 전체를 조금 아래로 */
+.portrait .mascot { top: 186px; }
+.portrait .bubble { top: 318px; }
+.portrait .ledge { top: 446px; }
+.portrait .board { top: 470px; }
+.portrait .side { top: 1204px; height: 640px; }
+.portrait .stat.total { display: flex; align-items: baseline; gap: 20px; }
+.portrait .stat.total .full { margin-top: 0; font-size: 44px; }
+.portrait .kr-rule { display: none; }
 
 </style>
 <style>
@@ -575,8 +579,8 @@ body.no-led .bar::after { display: none; }
           <span class="hd-event">HIGH FIVE AI 2026</span>
           <span class="hd-sub">AI STARTUP EXPERIENCE FESTIVAL · 2026.11.21 홍대 SVC 서울</span>
         </div>
-        <h1 class="hd-title led-text" id="title">실시간 기업 투자 랭킹!!</h1>
-        <p class="hd-kr" id="subtitle"><b class="en">LIVE INVESTMENT</b> <span>·</span> <em>투자왕을 찾아라!!</em></p>
+        <h1 class="hd-title led-text" id="title">LIVE INVESTMENT</h1>
+        <p class="hd-kr" id="subtitle">실시간 기업 투자 랭킹 <span>·</span> <em>투자왕을 찾아라!</em></p>
       </div>
     </header>
 
@@ -1961,10 +1965,10 @@ if (!document.documentElement.classList.contains('need-setup')) {
     document.body.classList.toggle('is-closed', status === 'CLOSED');
     document.body.classList.toggle('is-final', status === 'FINAL');
     $('liveText').textContent = status === 'OPEN' ? 'LIVE' : status === 'CLOSED' ? 'CLOSED' : 'FINAL';
-    $('title').textContent = status === 'OPEN' ? '실시간 기업 투자 랭킹!!' : '투자 마감! 최종 순위';
+    $('title').textContent = status === 'OPEN' ? 'LIVE INVESTMENT' : 'INVESTMENT CLOSED';
     $('subtitle').innerHTML = status === 'OPEN'
-      ? '<b class="en">LIVE INVESTMENT</b> <span>·</span> <em>투자왕을 찾아라!!</em>'
-      : '<b class="en">INVESTMENT CLOSED</b> <span>·</span> <em>최종 순위</em>';
+      ? '실시간 기업 투자 랭킹 <span>·</span> <em>투자왕을 찾아라!</em>'
+      : '투자 마감 <span>·</span> <em>최종 순위</em>';
     setTicker(status !== 'OPEN');
 
     if (status === 'CLOSED' && was !== 'FINAL') showStamp();
