@@ -299,6 +299,9 @@ body.has-hnav main { padding-top: 56px; }
 .hud span:last-child { color: var(--bad); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (max-width: 370px) { .brand { font-size: 44px; } .hero .mascot { width: 170px; height: 127px; } .title .t1 { font-size: 52px; } .title .t3 { font-size: 46px; } .amt { font-size: 12px; } }
+.cosel{width:100%;min-height:48px;border-radius:12px;border:2px solid #c9cfe8;padding:0 12px;font-size:16px;font-weight:700;margin-bottom:8px;background:#fff;color:var(--ink)}
+.chips button{border:2px solid #c9cfe8;background:#fff;border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700;color:var(--ink)}
+.chips button.on{background:var(--lime);border-color:var(--ink)}
 </style>
 </head>
 <body>
@@ -342,7 +345,7 @@ body.has-hnav main { padding-top: 56px; }
     </div>
     <button class="btn" type="button" id="avNext" style="margin-top:16px">이 캐릭터로 결정!</button>
     <div class="avopts" id="avOpts"></div>
-    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1108-T</p>
+    <p style="text-align:center;font-size:12px;color:#8a8fb0;margin:14px 0 0">앱 버전 1108-U</p>
   </section>
 
   <!-- 닉네임 + 비밀번호 -->
@@ -443,6 +446,30 @@ body.has-hnav main { padding-top: 56px; }
       <p class="help" style="margin:0 0 10px;color:var(--ink);font-weight:700">캐릭터와 하이파이브 사진을 찍어 <b>#HighFiveAI2026</b> 해시태그로 SNS 에 올리고, 내 SNS 아이디를 적어 주세요.</p>
       <div class="codebox" style="margin-top:0"><input id="snsIn" placeholder="@instagram_id" maxlength="40" aria-label="SNS 아이디" style="text-transform:none"><button class="btn sm" type="button" id="snsBtn">응모</button></div>
       <p class="help" id="shotDone" hidden style="margin:10px 0 0;color:var(--green);font-weight:900">✅ 응모 완료! 전광판에 응모자로 표시되고, 추첨해서 선물을 드려요.</p>
+    </div>
+
+    <div class="h2"><b>미션 5 · 응원 메시지</b><span>+300만</span></div>
+    <div class="card" style="padding:14px" id="cheerCard">
+      <p class="help" style="margin:0 0 10px;color:var(--ink);font-weight:700">유니콘 기업을 꿈꾸는 기업 중 <b>내가 투자한 기업</b>에 응원 메시지를 보내 주세요. 전광판에 내 메시지가 떠요! 💬</p>
+      <select id="cheerCo" class="cosel" aria-label="응원할 기업"></select>
+      <div class="codebox" style="margin-top:0"><input id="cheerIn" placeholder="예: 꼭 유니콘 되세요! 화이팅!" maxlength="40" aria-label="응원 메시지" style="text-transform:none"><button class="btn sm" type="button" id="cheerBtn">보내기</button></div>
+      <p class="help" id="cheerDone" hidden style="margin:10px 0 0;color:var(--green);font-weight:900"></p>
+    </div>
+
+    <div class="h2"><b>미션 6 · 투자 이유</b><span>+300만</span></div>
+    <div class="card" style="padding:14px" id="reasonCard">
+      <p class="help" style="margin:0 0 10px;color:var(--ink);font-weight:700">투자한 기업의 <b>어떤 점</b>이 투자하고 싶게 만들었나요? 💡</p>
+      <select id="reasonCo" class="cosel" aria-label="투자 이유를 쓸 기업"></select>
+      <div class="chips" id="reasonChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px"></div>
+      <div class="codebox" style="margin-top:0"><input id="reasonIn" placeholder="예: 아이디어가 신선해서" maxlength="60" aria-label="투자 이유" style="text-transform:none"><button class="btn sm" type="button" id="reasonBtn">보내기</button></div>
+      <p class="help" id="reasonDone" hidden style="margin:10px 0 0;color:var(--green);font-weight:900"></p>
+    </div>
+
+    <div class="h2"><b>미션 7 · 최고의 기업</b><span>+300만</span></div>
+    <div class="card" style="padding:14px" id="bestCard">
+      <p class="help" style="margin:0 0 10px;color:var(--ink);font-weight:700">오늘 만난 기업 중 <b>가장 기억에 남는 기업</b> 하나를 골라 주세요. 전광판에 투표 순위가 떠요! 🏅</p>
+      <div class="codebox" style="margin-top:0"><select id="bestCo" class="cosel" aria-label="가장 기억에 남는 기업" style="margin:0;flex:1"></select><button class="btn sm" type="button" id="bestBtn">선택</button></div>
+      <p class="help" id="bestDone" hidden style="margin:10px 0 0;color:var(--green);font-weight:900"></p>
     </div>
 
     <div class="h2"><b>MAIN QUEST 스탬프</b><span id="qStamps"></span></div>
@@ -831,7 +858,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     updown: { name: 'LV.2 AI와 연타 대결!', max: 100 },
     quiz: { name: 'LV.3 AI 스타트업 OX 퀴즈', max: 100 }
   };
-  var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
+  var HF_REWARD = { secret: 1000, shot: 500, cheer: 300, reason: 300, best: 300, cap: 5000 }; // 만원 단위
   /** 웜업 게임 보상(만원): 성공률 100% → 1,000만, 10% 떨어질 때마다 100만씩 감소 */
   function hfGameReward(pct) { pct = Math.max(0, Math.min(100, Math.floor(Number(pct) || 0))); return Math.floor(pct / 10) * 100; }
   var HF_SECRET_NEED = 3; // 캐릭터 몇 마리 찾으면 SECRET REWARD (쉽게: 5마리 중 3마리)
@@ -953,6 +980,22 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       pl.sns = sns; dirty = true;
       if (stamp('SHOT')) ev = { type: 'shot', title: '이벤트 응모 완료!', reward: give(HF_REWARD.shot) };
       else ev = { type: 'shot', title: 'SNS 아이디를 바꿨어요', again: true };
+    } else if (action === 'cheer' || action === 'reason' || action === 'best') {
+      // 미션 5 응원 메시지 · 미션 6 투자 이유 (내가 투자한 기업) · 미션 7 가장 기억에 남는 기업 (아무 기업)
+      // 처음 한 번 보상, 이후에는 내용만 바뀜
+      var KEY = { cheer: 'CHEER', reason: 'REASON', best: 'BEST' }[action];
+      var LBL = { cheer: '응원 메시지', reason: '투자 이유', best: '기억에 남는 기업' }[action];
+      var cs = String(p.startup || '');
+      if (st.startups.map(function (s) { return s.name; }).indexOf(cs) < 0) throw new Error('기업을 골라 주세요.');
+      if (action !== 'best') {
+        var mineInv = myRows().filter(function (r) { return hfNorm(r.id) === hfNorm(pl.id) && r.startup === cs; }).length;
+        if (!mineInv) throw new Error('내가 투자한 기업만 고를 수 있어요.');
+      }
+      var ct = String(p.text || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+      if (action !== 'best' && ct.length < 2) throw new Error(LBL + '를 2글자 이상 적어 주세요.');
+      var first = !pl.m[KEY];
+      pl.m[KEY] = { ts: now, s: cs, t: ct }; dirty = true;
+      ev = first ? { type: action, title: LBL + ' 완료!', name: cs, reward: give(HF_REWARD[action]) } : { type: action, title: LBL + '를 바꿨어요', name: cs, again: true };
     } else if (action === 'stamp') {
       if (p.key === 'DISCOVER' || p.key === 'MY') stamp(p.key);
     }
@@ -984,6 +1027,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     out.characters = chars.map(function (x) { var f = !!m[x.key]; return { key: x.key, name: f ? x.name : '???', look: x.look, desc: f ? x.desc : '', hint: x.hint, reward: x.reward, found: f }; });
     out.secret = m.SECRET ? { coupon: hfCoupon(pl.no), reward: HF_REWARD.secret } : null;
     out.shot = !!m.SHOT;
+    out.cheer = m.CHEER && m.CHEER.t ? { s: m.CHEER.s, t: m.CHEER.t } : null;
+    out.reason = m.REASON && m.REASON.t ? { s: m.REASON.s, t: m.REASON.t } : null;
+    out.best = m.BEST && m.BEST.s ? { s: m.BEST.s, t: m.BEST.t || '' } : null;
     out.king = inAgg.king;
     out.top3 = agg.top3;
     out.kingTop = (agg.kings || []).slice(0, 3).map(function (k) { return { rank: k.rank, id: k.id, score: k.score }; });
@@ -1172,6 +1218,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     base.prizes = mockPrizes(d);
     var sl = Object.keys(d.accounts || {}).map(function (k) { return d.accounts[k]; }).filter(function (a) { return a.m && a.m.SHOT; });
     base.shots = { count: sl.length, names: sl.map(function (a) { return a.id; }), draws: d.shotDraws || [] };
+    base.cheers = Object.keys(d.accounts || {}).map(function (k) { return d.accounts[k]; }).filter(function (a) { return a.m && a.m.CHEER && a.m.CHEER.t; })
+      .map(function (a) { return { id: a.id, s: a.m.CHEER.s, t: a.m.CHEER.t, ts: a.m.CHEER.ts }; }).sort(function (a, b) { return b.ts - a.ts; }).slice(0, 30);
+    var bt = {}; Object.keys(d.accounts || {}).forEach(function (k) { var a = d.accounts[k]; if (a.m && a.m.BEST && a.m.BEST.s) bt[a.m.BEST.s] = (bt[a.m.BEST.s] || 0) + 1; });
+    base.best = Object.keys(bt).map(function (n) { return { name: n, votes: bt[n] }; }).sort(function (a, b) { return b.votes - a.votes; });
     return base;
   }
 
@@ -2017,7 +2067,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('nxTitle').innerHTML = nx[0]; $('nxSub').textContent = nx[1]; $('nxBtn').textContent = nx[2]; $('nxBtn').dataset.go = nx[3];
     var found = S.characters.filter(function (c) { return c.found; }).length;
     $('bChars').textContent = found + '/' + S.characters.length;
-    var openQ = S.games.filter(function (g) { return !g.done; }).length + S.booths.filter(function (b) { return !b.done; }).length + (S.shot ? 0 : 1);
+    var openQ = S.games.filter(function (g) { return !g.done; }).length + S.booths.filter(function (b) { return !b.done; }).length + (S.shot ? 0 : 1) + (S.cheer ? 0 : 1) + (S.reason ? 0 : 1) + (S.best ? 0 : 1);
     $('bQuest').hidden = !openQ; $('bQuest').textContent = openQ;
     $('hKing').innerHTML = S.king
       ? '👑 나의 투자왕 순위 <b>' + S.king.rank + '위</b> / ' + S.king.of + '명 · TOP3 기업 투자 <b>' + eokTxt(S.king.score) + '</b>'
@@ -2114,6 +2164,23 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var found = S.characters.filter(function (c) { return c.found; }).length;
     $('qCharSt').textContent = found + '/' + S.characters.length; $('qCharCount').textContent = found + '/' + S.characters.length + ' 발견';
     $('shotDone').hidden = !S.shot;
+    var inv = Object.keys(S.by || {}).filter(function (n) { return (S.by[n] || 0) > 0; });
+    var csel = $('cheerCo'), cprev = csel.value || (S.cheer && S.cheer.s) || '';
+    csel.innerHTML = inv.length ? inv.map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('') : '<option value="">먼저 기업에 투자해 주세요</option>';
+    if (cprev && inv.indexOf(cprev) >= 0) csel.value = cprev;
+    csel.disabled = !inv.length; $('cheerIn').disabled = !inv.length; $('cheerBtn').disabled = !inv.length;
+    var rsel = $('reasonCo'), rprev = rsel.value || (S.reason && S.reason.s) || '';
+    rsel.innerHTML = csel.innerHTML; if (rprev && inv.indexOf(rprev) >= 0) rsel.value = rprev;
+    rsel.disabled = !inv.length; $('reasonIn').disabled = !inv.length; $('reasonBtn').disabled = !inv.length;
+    $('reasonDone').hidden = !S.reason;
+    if (S.reason) $('reasonDone').innerHTML = '✅ ' + esc(S.reason.s) + ' 투자 이유: “' + esc(S.reason.t) + '”';
+    var bsel = $('bestCo'), bprev = bsel.value || (S.best && S.best.s) || '';
+    bsel.innerHTML = (S.startups || []).map(function (x) { return '<option value="' + esc(x.name) + '">' + esc(x.name) + '</option>'; }).join('');
+    if (bprev) bsel.value = bprev;
+    $('bestDone').hidden = !S.best;
+    if (S.best) $('bestDone').innerHTML = '✅ 가장 기억에 남는 기업: <b>' + esc(S.best.s) + '</b> · 다시 고르면 바뀌어요';
+    $('cheerDone').hidden = !S.cheer;
+    if (S.cheer) $('cheerDone').innerHTML = '✅ ' + esc(S.cheer.s) + '에 응원 완료! “' + esc(S.cheer.t) + '” · 다시 보내면 메시지가 바뀌어요';
     if (S.shot && S.player.sns && !$('snsIn').value) $('snsIn').value = S.player.sns;
     var ICON = { CHECKIN: '✔', AVATAR: '😎', GET: '💰', WARMUP: '🎮', DISCOVER: '🔍', INVEST: '💸', PLAY: '🎯', FIND: '🐮', SHOT: '📸', MY: '📊', FINAL: '🏁', KING: '👑' };
     $('qStamps').textContent = S.steps.filter(function (s) { return s.done; }).length + '/12';
@@ -2124,6 +2191,31 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var c = $('codeIn').value.trim();
     if (!c) return toast('QR 아래 코드를 입력해 주세요');
     call({ action: 'claim', code: c, rid: rid() }).then(function () { $('codeIn').value = ''; }).catch(function () {});
+  });
+  $('cheerBtn').addEventListener('click', function () {
+    var co = $('cheerCo').value, t = $('cheerIn').value.trim();
+    if (!co) return toast('먼저 기업에 투자해 주세요');
+    if (t.length < 2) return toast('응원 메시지를 적어 주세요');
+    call({ action: 'cheer', startup: co, text: t, rid: rid() }).then(function () { $('cheerIn').value = ''; }).catch(function () {});
+  });
+  ['아이디어가 신선해요', '팀이 멋져요', '기술력이 좋아요', '시장성이 커 보여요', '사회에 도움이 돼요', '체험이 재밌었어요'].forEach(function (t) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = t;
+    b.addEventListener('click', function () {
+      var v = $('reasonIn').value.trim();
+      $('reasonIn').value = v ? (v.indexOf(t) >= 0 ? v : (v + ', ' + t).slice(0, 60)) : t; b.classList.add('on');
+    });
+    $('reasonChips').appendChild(b);
+  });
+  $('reasonBtn').addEventListener('click', function () {
+    var co = $('reasonCo').value, t = $('reasonIn').value.trim();
+    if (!co) return toast('먼저 기업에 투자해 주세요');
+    if (t.length < 2) return toast('투자 이유를 적거나 위 버튼을 눌러 주세요');
+    call({ action: 'reason', startup: co, text: t, rid: rid() }).then(function () { $('reasonIn').value = ''; Array.prototype.forEach.call(document.querySelectorAll('#reasonChips .on'), function (x) { x.classList.remove('on'); }); }).catch(function () {});
+  });
+  $('bestBtn').addEventListener('click', function () {
+    var co = $('bestCo').value;
+    if (!co) return toast('기업을 골라 주세요');
+    call({ action: 'best', startup: co, rid: rid() }).catch(function () {});
   });
   $('snsBtn').addEventListener('click', function () {
     var v = $('snsIn').value.trim();
@@ -2175,6 +2267,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     rw.push('⏰ 14·15·16시 정각 투자자 TOP5에게 상품! 17시엔 최종 투자왕 TOP5');
     if (S.secret) rw.push('🎁 SECRET REWARD 쿠폰 <b>' + esc(S.secret.coupon) + '</b> (안내 데스크에서 교환)');
     if (S.shot) rw.push('📸 HIGH FIVE SHOT 이벤트 응모 완료');
+    if (S.cheer) rw.push('💬 ' + esc(S.cheer.s) + ' 응원 메시지 완료');
+    if (S.reason) rw.push('💡 ' + esc(S.reason.s) + ' 투자 이유 작성 완료');
+    if (S.best) rw.push('🏅 가장 기억에 남는 기업: ' + esc(S.best.s));
     rw.push('🏅 스탬프 ' + S.steps.filter(function (s) { return s.done; }).length + '/12');
     $('myRewards').innerHTML = rw.map(function (x) { return '<div style="padding:4px 0;font-weight:700">' + x + '</div>'; }).join('');
   }
