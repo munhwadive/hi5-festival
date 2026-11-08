@@ -499,6 +499,28 @@ body.no-led .bar::after { display: none; }
 .portrait .more ol.kings li .r, .portrait .more ol.kings li .a { font-size: 25px; }
 .portrait .more ol.kings li { padding-top: 1px; padding-bottom: 1px; }
 
+/* 투자왕 순위 페이지 넘김 (위로 스크롤) */
+.more ol.kings { transition: transform .45s ease, opacity .45s ease; }
+.more ol.kings.kout { transform: translateY(-40px); opacity: 0; }
+.more ol.kings.kin { transform: translateY(40px); opacity: 0; transition: none; }
+.more ol.kings.pg li:first-child { background: transparent; box-shadow: none; }
+.more ol.kings.pg li:first-child .n { color: #fff; font-size: 27px; }
+.more ol.kings.pg li:first-child .kd b { color: #fff; }
+/* 세로: 위쪽 여백 줄이기 */
+.portrait .hd { top: 22px; }
+.portrait .hd-title { font-size: 96px; margin-top: 10px; }
+.portrait .hd-kr { margin-top: 8px; }
+.portrait .mascot { top: 140px; }
+.portrait .bubble { top: 214px; }
+.portrait .ledge { top: 400px; }
+.portrait .board { top: 424px; }
+.portrait .side { top: 1156px; height: 688px; }
+.portrait .more ol.kings { gap: 6px; }
+.portrait .more ol.kings li { padding-top: 5px; padding-bottom: 5px; }
+.portrait .more ol.kings li .n, .portrait .more ol.kings.pg li:first-child .n { font-size: 30px; }
+.portrait .more ol.kings li:first-child .n { font-size: 33px; }
+.portrait .bubble { top: 272px; left: 400px; }
+
 </style>
 <style>
 :root {
@@ -931,7 +953,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       }),
       top3: agg.top3,
       // 투자왕 후보는 발표를 위해 닉네임 그대로 공개
-      kings: agg.kings.slice(0, 7)
+      kings: agg.kings.slice(0, 21)
     };
   }
 
@@ -1858,16 +1880,45 @@ if (!document.documentElement.classList.contains('need-setup')) {
       ol.innerHTML = '<li><span class="note">TOP3 기업에 투자하면 순위에 올라요!</span></li>';
       return;
     }
-    top3 = top3 || [];
-    ol.innerHTML = kings.slice(0, 7).map(function (k) {
-      var by = k.by || {};
-      var det = top3.map(function (n, i) { return '<span>' + (i + 1) + '위 기업 <b>' + HF.compact(by[n] || 0) + '</b></span>'; }).join('') +
-        '<span>총 투자 <b>' + HF.compact(k.total || 0) + '</b></span>';
-      return '<li><span class="r">' + (k.rank < 10 ? '0' : '') + k.rank + '</span><span class="n">' + (k.rank === 1 ? '<i class="kcrown">' + CROWN + '</i>' : '') + ((k.avatar || window.HF_DEFAULT_AVATAR) ? '<img class="kav" alt="" src="' + esc(k.avatar || window.HF_DEFAULT_AVATAR) + '">' : '') + esc(k.id) + '</span>' +
-        '<span class="a">' + HF.compact(k.score) + '</span><span class="kd">' + det + '</span></li>';
-    }).join('');
+    kAll = kings; kTop3 = top3 || [];
+    var pages = Math.min(3, Math.ceil(kings.length / 7));
+    if (kPage >= pages) kPage = 0;
+    drawKingPage();
+    if (!kTimer) kTimer = setInterval(nextKingPage, 7000);
   }
 
+
+  // 투자왕 순위: 1~7위 → 8~14위 → 15~21위 순서로 위로 스크롤하며 돌아가며 보여줌
+  var kAll = [], kTop3 = [], kPage = 0, kTimer = null;
+  function kingRow(k) {
+    var by = k.by || {};
+    var det = kTop3.map(function (n, i) { return '<span>' + (i + 1) + '위 기업 <b>' + HF.compact(by[n] || 0) + '</b></span>'; }).join('') +
+      '<span>총 투자 <b>' + HF.compact(k.total || 0) + '</b></span>';
+    return '<li><span class="r">' + (k.rank < 10 ? '0' : '') + k.rank + '</span><span class="n">' + (k.rank === 1 ? '<i class="kcrown">' + CROWN + '</i>' : '') + ((k.avatar || window.HF_DEFAULT_AVATAR) ? '<img class="kav" alt="" src="' + esc(k.avatar || window.HF_DEFAULT_AVATAR) + '">' : '') + esc(k.id) + '</span>' +
+      '<span class="a">' + HF.compact(k.score) + '</span><span class="kd">' + det + '</span></li>';
+  }
+  function drawKingPage() {
+    var ol = $('kingList'); if (!ol || !kAll.length) return;
+    var from = kPage * 7, list = kAll.slice(from, from + 7);
+    ol.classList.toggle('pg', kPage > 0);
+    ol.innerHTML = list.map(kingRow).join('');
+    var lbl = document.querySelector('.kr-lbl');
+    var pages = Math.min(3, Math.ceil(kAll.length / 7));
+    if (lbl) lbl.textContent = (from + 1) + '~' + (from + list.length) + '위' + (pages > 1 ? ' · ' + (kPage + 1) + '/' + pages : '');
+  }
+  function nextKingPage() {
+    var pages = Math.min(3, Math.ceil(kAll.length / 7));
+    if (pages < 2) return;
+    var ol = $('kingList');
+    ol.classList.add('kout');
+    setTimeout(function () {
+      kPage = (kPage + 1) % pages;
+      drawKingPage();
+      ol.classList.remove('kout'); ol.classList.add('kin');
+      void ol.offsetWidth;
+      ol.classList.remove('kin');
+    }, 450);
+  }
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
