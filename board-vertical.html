@@ -628,6 +628,11 @@ body.no-led .bar::after { display: none; }
 .portrait .stat.total .full { font-size: 72px; margin-top: 2px; line-height: 1.05; }
 .portrait .stat.total .full em { font-size: 44px; }
 .portrait .side { top: 1090px; height: 740px; }
+/* 세로: "총 투자 금액" 바로 옆에 금액 (한 줄) */
+.portrait .stat.total { display: flex; align-items: baseline; gap: 22px; flex-wrap: nowrap; padding: 8px 0 10px; }
+.portrait .stat.total .lbl-kr { flex: none; font-size: 36px; }
+.portrait .stat.total .full { margin: 0; font-size: 62px; white-space: nowrap; }
+.portrait .stat.total .full em { font-size: 38px; }
 
 </style>
 <style>
