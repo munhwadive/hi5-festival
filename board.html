@@ -604,6 +604,12 @@ body.no-led .bar::after { display: none; }
 .portrait .ledge { top: 352px; }
 .portrait .board { top: 376px; }
 .portrait .side { top: 1112px; height: 718px; }
+/* 말풍선: 가로는 줄이고 세로는 키워서 글씨 크게 */
+.bubble { width: 196px; left: 1334px; top: 40px; min-height: 160px; padding: 16px 14px; font-size: 28px; line-height: 1.22; }
+.portrait .bubble { left: 404px; top: 56px; width: 196px; min-height: 112px; padding: 12px 12px; }
+.portrait .mascot { top: 96px; left: 660px; transform: scale(.88); transform-origin: 60% 100%; }
+.portrait .bubble { left: 846px; top: 14px; width: 190px; min-height: 120px; padding: 10px 10px; transform-origin: 50% 100%; }
+.portrait .bubble::after { right: auto; left: 30%; top: auto; bottom: -18px; transform: rotate(90deg); }
 
 </style>
 <style>
@@ -1888,7 +1894,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
     function say(html, ms, news) {
       txt.innerHTML = html;
       var len = txt.textContent.length;
-      bub.style.fontSize = len > 26 ? '19px' : len > 20 ? '21px' : '';
+      bub.style.fontSize = len > 26 ? '24px' : len > 20 ? '26px' : '';
       bub.classList.toggle('news', !!news);
       bub.classList.remove('pop'); void bub.offsetWidth; bub.classList.add('pop');
       busyUntil = Date.now() + (ms || 5000);
