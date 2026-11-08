@@ -1112,7 +1112,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     updown: { name: 'LV.2 AI와 연타 대결!', max: 100 },
     quiz: { name: 'LV.3 AI 스타트업 OX 퀴즈', max: 100 }
   };
-  var HF_REWARD = { secret: 1000, shot: 500, cap: 5000 }; // 만원 단위
+  var HF_REWARD = { secret: 1000, shot: 500, cheer: 300, reason: 300, best: 300, cap: 5000 }; // 만원 단위
   /** 웜업 게임 보상(만원): 성공률 100% → 1,000만, 10% 떨어질 때마다 100만씩 감소 */
   function hfGameReward(pct) { pct = Math.max(0, Math.min(100, Math.floor(Number(pct) || 0))); return Math.floor(pct / 10) * 100; }
   var HF_SECRET_NEED = 3; // 캐릭터 몇 마리 찾으면 SECRET REWARD (쉽게: 5마리 중 3마리)
@@ -1234,6 +1234,22 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       pl.sns = sns; dirty = true;
       if (stamp('SHOT')) ev = { type: 'shot', title: '이벤트 응모 완료!', reward: give(HF_REWARD.shot) };
       else ev = { type: 'shot', title: 'SNS 아이디를 바꿨어요', again: true };
+    } else if (action === 'cheer' || action === 'reason' || action === 'best') {
+      // 미션 5 응원 메시지 · 미션 6 투자 이유 (내가 투자한 기업) · 미션 7 가장 기억에 남는 기업 (아무 기업)
+      // 처음 한 번 보상, 이후에는 내용만 바뀜
+      var KEY = { cheer: 'CHEER', reason: 'REASON', best: 'BEST' }[action];
+      var LBL = { cheer: '응원 메시지', reason: '투자 이유', best: '기억에 남는 기업' }[action];
+      var cs = String(p.startup || '');
+      if (st.startups.map(function (s) { return s.name; }).indexOf(cs) < 0) throw new Error('기업을 골라 주세요.');
+      if (action !== 'best') {
+        var mineInv = myRows().filter(function (r) { return hfNorm(r.id) === hfNorm(pl.id) && r.startup === cs; }).length;
+        if (!mineInv) throw new Error('내가 투자한 기업만 고를 수 있어요.');
+      }
+      var ct = String(p.text || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+      if (action !== 'best' && ct.length < 2) throw new Error(LBL + '를 2글자 이상 적어 주세요.');
+      var first = !pl.m[KEY];
+      pl.m[KEY] = { ts: now, s: cs, t: ct }; dirty = true;
+      ev = first ? { type: action, title: LBL + ' 완료!', name: cs, reward: give(HF_REWARD[action]) } : { type: action, title: LBL + '를 바꿨어요', name: cs, again: true };
     } else if (action === 'stamp') {
       if (p.key === 'DISCOVER' || p.key === 'MY') stamp(p.key);
     }
@@ -1265,6 +1281,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     out.characters = chars.map(function (x) { var f = !!m[x.key]; return { key: x.key, name: f ? x.name : '???', look: x.look, desc: f ? x.desc : '', hint: x.hint, reward: x.reward, found: f }; });
     out.secret = m.SECRET ? { coupon: hfCoupon(pl.no), reward: HF_REWARD.secret } : null;
     out.shot = !!m.SHOT;
+    out.cheer = m.CHEER && m.CHEER.t ? { s: m.CHEER.s, t: m.CHEER.t } : null;
+    out.reason = m.REASON && m.REASON.t ? { s: m.REASON.s, t: m.REASON.t } : null;
+    out.best = m.BEST && m.BEST.s ? { s: m.BEST.s, t: m.BEST.t || '' } : null;
     out.king = inAgg.king;
     out.top3 = agg.top3;
     out.kingTop = (agg.kings || []).slice(0, 3).map(function (k) { return { rank: k.rank, id: k.id, score: k.score }; });
@@ -1453,6 +1472,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     base.prizes = mockPrizes(d);
     var sl = Object.keys(d.accounts || {}).map(function (k) { return d.accounts[k]; }).filter(function (a) { return a.m && a.m.SHOT; });
     base.shots = { count: sl.length, names: sl.map(function (a) { return a.id; }), draws: d.shotDraws || [] };
+    base.cheers = Object.keys(d.accounts || {}).map(function (k) { return d.accounts[k]; }).filter(function (a) { return a.m && a.m.CHEER && a.m.CHEER.t; })
+      .map(function (a) { return { id: a.id, s: a.m.CHEER.s, t: a.m.CHEER.t, ts: a.m.CHEER.ts }; }).sort(function (a, b) { return b.ts - a.ts; }).slice(0, 30);
+    var bt = {}; Object.keys(d.accounts || {}).forEach(function (k) { var a = d.accounts[k]; if (a.m && a.m.BEST && a.m.BEST.s) bt[a.m.BEST.s] = (bt[a.m.BEST.s] || 0) + 1; });
+    base.best = Object.keys(bt).map(function (n) { return { name: n, votes: bt[n] }; }).sort(function (a, b) { return b.votes - a.votes; });
     return base;
   }
 
@@ -1736,7 +1759,16 @@ if (!document.documentElement.classList.contains('need-setup')) {
     if (sig === shotSig) return;
     shotSig = sig; setTicker(tickerClosed);
   }
-  var tickerClosed = false;
+  var tickerClosed = false, cheerList = [], cheerSig = '', bestList = [], bestSig = '';
+  function setBest(list) { list = list || []; var sig = JSON.stringify(list.slice(0, 3)); if (sig === bestSig) return; bestSig = sig; bestList = list; setTicker(tickerClosed); }
+  function setCheers(list) {
+    list = list || [];
+    var sig = list.map(function (c) { return c.id + c.ts; }).join('|');
+    if (sig === cheerSig) return;
+    var isNew = cheerSig && list[0] && cheerSig.indexOf(list[0].id + list[0].ts) < 0;
+    cheerSig = sig; cheerList = list; setTicker(tickerClosed);
+    if (isNew && curStatus === 'OPEN') { try { mascot.say('💬 ' + esc(list[0].s) + ' 응원!<br><b>“' + esc(list[0].t) + '”</b>', 9000, true); } catch (e) { /* ignore */ } }
+  }
   function setTicker(closed) {
     tickerClosed = closed;
     var names = shotSig ? shotSig.split('|') : [];
@@ -1745,6 +1777,9 @@ if (!document.documentElement.classList.contains('need-setup')) {
       ? '<span>투자 마감! 최종 순위를 확인하세요 <i>★</i></span><span>INVESTMENT CLOSED <i>▶</i></span><span>2026 투자왕은 누구? <i>★</i></span>'
       : '<span>너의 1억, 어디에 투자할래? <i>★</i></span><span>순위는 지금도 바뀌는 중 <i>▶</i></span><span>부스 체험하고 투자왕에 도전! <i>★</i></span><span>만나고, 도전하고, 함께 더 크게 <i>▶</i></span>';
     unit += shotHtml;
+    if (cheerList.length) unit += '<span>💬 기업 응원 메시지 <i>★</i></span>' + cheerList.slice(0, 15).map(function (c) { return '<span>' + esc(c.id) + ' → <b style="color:#0a1456">' + esc(c.s) + '</b> “' + esc(c.t) + '” <i>♥</i></span>'; }).join('');
+    else if (!closed) unit += '<span>💬 미션 5 · 투자한 기업에 응원 메시지를 남겨 주세요! <i>♥</i></span>';
+    if (bestList.length) unit += '<span>🏅 가장 기억에 남는 기업 투표 <i>★</i></span>' + bestList.slice(0, 3).map(function (b, i) { return '<span>' + (i + 1) + '위 <b style="color:#0a1456">' + esc(b.name) + '</b> ' + b.votes + '표 <i>▶</i></span>'; }).join('');
     $('ticker').innerHTML = unit + unit;
   }
   setTicker(false);
@@ -2305,6 +2340,8 @@ if (!document.documentElement.classList.contains('need-setup')) {
   function checkShotDraw(data) {
     var ds = (data.shots && data.shots.draws) || [], last = ds[ds.length - 1];
     setShots(data.shots);
+    setCheers(data.cheers);
+    setBest(data.best);
     if (!last) { if (lastDrawN === null) lastDrawN = 0; return; }
     if ((lastDrawN !== null && last.n !== lastDrawN) || (lastDrawN === null && Date.now() - last.at < 2 * 60 * 1000)) {
       $('dbEv').textContent = 'HIGH FIVE SHOT · LUCKY DRAW';
