@@ -478,10 +478,28 @@ body.no-led .bar::after { display: none; }
 .portrait .stat .lbl { font-size: 18px; }
 
 /* 마스코트: 왼쪽으로 기운 그림을 바로 세우고, 잘린 몸통 아래쪽은 받침대 뒤로 자연스럽게 사라지게 */
-@keyframes mIdle2 { 0%, 100% { transform: translateY(0) rotate(9deg); } 50% { transform: translateY(-7px) rotate(12deg); } }
+@keyframes mIdle2 { 0%, 100% { transform: translateY(0) rotate(5deg); } 50% { transform: translateY(-6px) rotate(6deg); } }
 .m-idle { animation-name: mIdle2; }
-.m-jump { top: 14px; }
-.mascot { -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 64%, transparent 93%); mask-image: linear-gradient(to bottom, #000 0, #000 64%, transparent 93%); }
+.mascot { left: 1476px; width: 400px; -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 78%, transparent 98%); mask-image: linear-gradient(to bottom, #000 0, #000 78%, transparent 98%); }
+.m-jump { left: 0; top: -6px; width: 400px; height: 300px; }
+.portrait .mascot { left: 660px; }
+@keyframes mHop {
+  0% { transform: none; }
+  18% { transform: translateY(6px) scale(1.06, .9); }
+  48% { transform: translateY(-22px) scale(.97, 1.05); }
+  78% { transform: translateY(0) scale(1.03, .97); }
+  100% { transform: none; }
+}
+
+/* 투자자 수·투자 건수 표시 숨김 (요청) */
+.stat-pair, .portrait .stat-pair { display: none; }
+.portrait .stat.total { text-align: left; display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap; }
+.portrait .stat.total .lbl { flex-basis: 100%; }
+
+/* 마스코트를 LED 점무늬 위로 올려서 더 선명하게 */
+.mascot { z-index: 51; filter: drop-shadow(0 0 14px rgba(120,190,255,.45)) brightness(1.06) saturate(1.1); }
+.ledge { z-index: 52; }
+.bubble { z-index: 53; }
 
 </style>
 <style>
@@ -523,7 +541,7 @@ body.no-led .bar::after { display: none; }
           <span class="hd-sub">AI STARTUP EXPERIENCE FESTIVAL · 2026.11.21 홍대 SVC 서울</span>
         </div>
         <h1 class="hd-title led-text" id="title">LIVE INVESTMENT</h1>
-        <p class="hd-kr" id="subtitle">실시간 투자 랭킹 <span>·</span> <em>투자왕을 찾아라!</em></p>
+        <p class="hd-kr" id="subtitle">실시간 기업 투자 랭킹 <span>·</span> <em>투자왕을 찾아라!</em></p>
       </div>
     </header>
 
@@ -537,7 +555,7 @@ body.no-led .bar::after { display: none; }
     <!-- TOP 5 -->
     <section class="board" aria-label="STARTUP INVESTMENT RANKING TOP 5">
       <div class="board-head">
-        <span>STARTUP INVESTMENT RANKING</span><b>TOP 5</b>
+        <span>실시간 기업 투자 랭킹</span><b>TOP 5</b>
         <span class="waiting" id="waiting" hidden>첫 투자를 기다리는 중…</span>
         <span class="bh-upd">
           <span class="mode-tag" id="modeTag" hidden>TEST · MOCK</span>
@@ -1881,7 +1899,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
     $('liveText').textContent = status === 'OPEN' ? 'LIVE' : status === 'CLOSED' ? 'CLOSED' : 'FINAL';
     $('title').textContent = status === 'OPEN' ? 'LIVE INVESTMENT' : 'INVESTMENT CLOSED';
     $('subtitle').innerHTML = status === 'OPEN'
-      ? '실시간 투자 랭킹 <span>·</span> <em>투자왕을 찾아라!</em>'
+      ? '실시간 기업 투자 랭킹 <span>·</span> <em>투자왕을 찾아라!</em>'
       : '투자 마감 <span>·</span> <em>최종 순위</em>';
     setTicker(status !== 'OPEN');
 
