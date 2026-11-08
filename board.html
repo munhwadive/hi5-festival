@@ -477,6 +477,12 @@ body.no-led .bar::after { display: none; }
 .portrait .more ol.kings li { padding-top: 2px; padding-bottom: 2px; }
 .portrait .stat .lbl { font-size: 18px; }
 
+/* 마스코트: 왼쪽으로 기운 그림을 바로 세우고, 잘린 몸통 아래쪽은 받침대 뒤로 자연스럽게 사라지게 */
+@keyframes mIdle2 { 0%, 100% { transform: translateY(0) rotate(9deg); } 50% { transform: translateY(-7px) rotate(12deg); } }
+.m-idle { animation-name: mIdle2; }
+.m-jump { top: 14px; }
+.mascot { -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 64%, transparent 93%); mask-image: linear-gradient(to bottom, #000 0, #000 64%, transparent 93%); }
+
 </style>
 <style>
 :root {
