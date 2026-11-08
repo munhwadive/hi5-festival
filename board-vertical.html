@@ -610,6 +610,18 @@ body.no-led .bar::after { display: none; }
 .portrait .mascot { top: 96px; left: 660px; transform: scale(.88); transform-origin: 60% 100%; }
 .portrait .bubble { left: 846px; top: 14px; width: 190px; min-height: 120px; padding: 10px 10px; transform-origin: 50% 100%; }
 .portrait .bubble::after { right: auto; left: 30%; top: auto; bottom: -18px; transform: rotate(90deg); }
+/* 투자왕 닉네임 더 크게 → 줄 간격 좁게 */
+.more ol.kings li .n, .more ol.kings.pg li:first-child .n { font-size: 42px; letter-spacing: -.02em; }
+.more ol.kings li:first-child .n { font-size: 44px; }
+.more ol.kings li .r, .more ol.kings li .a { font-size: 36px; }
+.more ol.kings .kav { width: 44px; height: 44px; vertical-align: -9px; margin-right: 8px; }
+.more ol.kings li, .more ol.kings li:first-child { padding-top: 4px; padding-bottom: 4px; }
+.portrait .more ol.kings li .n, .portrait .more ol.kings.pg li:first-child .n { font-size: 56px; }
+.portrait .more ol.kings li:first-child .n { font-size: 58px; }
+.portrait .more ol.kings li .r, .portrait .more ol.kings li .a { font-size: 50px; }
+.portrait .more ol.kings .kav { width: 58px; height: 58px; vertical-align: -12px; margin-right: 12px; }
+.portrait .more ol.kings .kcrown { width: 44px; height: 35px; }
+.portrait .more ol.kings li { padding-top: 3px; padding-bottom: 3px; }
 
 </style>
 <style>
@@ -1992,6 +2004,11 @@ if (!document.documentElement.classList.contains('need-setup')) {
     var from = kPage * 7, list = kAll.slice(from, from + 7);
     ol.classList.toggle('pg', kPage > 0);
     ol.innerHTML = list.map(kingRow).join('');
+    // 긴 닉네임은 칸에 맞게 글씨를 조금씩 줄임
+    Array.prototype.forEach.call(ol.querySelectorAll('.n'), function (n) {
+      var fs = parseFloat(getComputedStyle(n).fontSize);
+      while (n.scrollWidth > n.clientWidth + 1 && fs > 22) { fs -= 2; n.style.fontSize = fs + 'px'; }
+    });
     var lbl = document.querySelector('.kr-lbl');
     var pages = Math.min(3, Math.ceil(kAll.length / 7));
     if (lbl) lbl.textContent = (from + 1) + '~' + (from + list.length) + '위' + (pages > 1 ? ' · ' + (kPage + 1) + '/' + pages : '');
