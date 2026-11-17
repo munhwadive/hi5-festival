@@ -204,6 +204,7 @@ img.pix, canvas.pix { image-rendering: pixelated; image-rendering: crisp-edges; 
 .co { padding: 16px; border-radius: 22px; background: #fff; border: 3px solid var(--ink); box-shadow: 0 6px 0 var(--ink); }
 .co .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .co .team { font-family: var(--f-pix); font-weight: 700; font-size: 13px; color: var(--royal); background: var(--soft); border: 2px solid var(--royal); border-radius: 8px; padding: 2px 8px; }
+.co .conum { display: inline-block; font-family: var(--f-pix); font-weight: 700; font-size: 15px; color: #fff; background: var(--royal); border: 2px solid var(--ink); border-radius: 7px; padding: 1px 8px; margin-right: 9px; vertical-align: 2px; }
 .co .rank { font-family: var(--f-num); font-size: 13px; background: var(--lime); border: 2px solid var(--ink); border-radius: 999px; padding: 2px 10px; }
 .co .rank.off { background: #f1f2f8; color: var(--muted); border-color: #cfd6f3; }
 .co .nm { margin-top: 8px; font-family: var(--f-num); font-size: 24px; line-height: 1.1; }
@@ -472,6 +473,7 @@ section > .help { background: rgba(255,255,255,.94); border-radius: 6px; box-sha
 
 /* 기업 카드 */
 .co .team { font-family: var(--f-pix); border-radius: 4px; color: #fff; background: var(--royal); border-color: var(--navy); }
+.co .conum { color: #fff; background: var(--royal); border-color: var(--navy); border-radius: 4px; }
 .co .rank { border-color: var(--navy); border-radius: 4px; }
 .co .nm { color: var(--navy); }
 .co .tags span { color: var(--royal); background: var(--soft); border-radius: 4px; }
@@ -2441,8 +2443,8 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       var chip = function (v, label) { return '<button class="amt' + (p === v && !pick['_c_' + s.name] ? ' on' : '') + '" type="button" data-co="' + esc(s.name) + '" data-v="' + v + '"' + (dis || v > L ? ' disabled' : '') + '>' + label + '</button>'; };
       var isArmed = armed === s.name;
       return '<div class="co" id="co_' + s.team + '">' +
-        '<div class="head"><span class="team">TEAM ' + ('0' + (s.team || 0)).slice(-2) + '</span><span class="rank' + (s.amount ? '' : ' off') + '">' + (s.amount ? s.rank + '위' : '첫 투자 대기') + '</span></div>' +
-        '<div class="nm">' + esc(s.name) + '</div>' +
+        '<div class="head" style="justify-content:flex-end"><span class="rank' + (s.amount ? '' : ' off') + '">' + (s.amount ? s.rank + '위' : '첫 투자 대기') + '</span></div>' +
+        '<div class="nm"><span class="conum">' + ('0' + (s.team || 0)).slice(-2) + '</span>' + esc(s.name) + '</div>' +
         '<div class="tags">' + tags + '</div>' +
         '<div class="line">“' + esc(s.line || s.tag || '') + '”</div>' +
         (dis ? '' : '<div class="amts">' + chip(500, '500만') + chip(1000, '1,000만') + chip(3000, '3,000만') +
