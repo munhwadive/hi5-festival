@@ -3287,7 +3287,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     if (ev.again) { toast(ev.title); return; }
     var look = 'hi';
     if (ev.type === 'character') { S.characters.forEach(function (c) { if (c.key === ev.key) look = c.look; }); }
-    var art = ev.type === 'character' ? mascotHtml(look, 'bob') : '<i class="ast cel a-' + (ev.type === 'invest' ? 'inv-coins' : (ev.score != null ? (ev.score >= 100 ? 'game-clear' : 'game-light') : (ev.reward > 0 ? 'qr-bonus' : 'cheer-done'))) + '" aria-hidden="true"></i>';
+    var art = ev.type === 'character' ? mascotHtml(look, 'bob') : '<i class="ast cel a-' + (ev.type === 'invest' ? 'inv-coins' : (ev.score != null ? (ev.score >= 100 ? 'game-clear' : 'game-light') : (ev.type === 'mission' ? 'qr-bonus' : 'cheer-done'))) + '" aria-hidden="true"></i>';
     var html = art + '<h3>' + esc(ev.title) + '</h3>';
     if (ev.type === 'invest') {
       html += '<div class="sub">' + esc(ev.startup) + '</div><div class="rw">+' + man(ev.man) + '</div>' +
