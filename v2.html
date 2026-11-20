@@ -636,6 +636,9 @@ section > .help { background: rgba(255,255,255,.94); border-radius: 6px; box-sha
 .cobot { margin-top: 16px; }
 .cohint { background: #fff; border: 2px solid var(--ink); border-radius: 12px; padding: 9px 12px; font-size: 14px; line-height: 1.45; color: var(--ink); }
 .cohint b { color: var(--royal); }
+.mybal { margin: 0 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--ink); color: #fff; border: 3px solid var(--ink); border-radius: 14px; padding: 12px 14px; box-shadow: 0 5px 0 var(--lime); }
+.mybal span { white-space: nowrap; font: 700 13px/1.3 var(--f-pix); color: var(--lime); }
+.mybal b { font-family: var(--f-num); font-size: 24px; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
 .cosec { font-family: var(--f-pix); font-size: 13px; font-weight: 700; color: var(--royal); margin: 6px 2px -4px; }
 .frow { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 4px 0 var(--ink); }
 .frow.on { background: #fbffd9; }
@@ -822,6 +825,7 @@ button.tgnext { display: block; width: 100%; text-align: left; font: inherit; cu
 
   <!-- DISCOVER / INVEST -->
   <section id="tCo" hidden>
+    <div id="coBal"></div>
     <img class="scrart" id="coArt" data-cut="inv" alt="">
     <span class="eyebrow" id="coEye">STAGE 09 · 가상투자하기</span>
     <div class="h2" style="margin-top:4px"><b id="coTitle">어디에 투자할래?</b><span id="coLeft"></span></div>
@@ -922,7 +926,7 @@ button.tgnext { display: block; width: 100%; text-align: left; font: inherit; cu
       <div class="av-frame" id="myAv"></div>
       <div class="nm" id="myName"></div>
       <div class="no" id="myNo"></div>
-      <button class="btn white sm" type="button" id="myAvBtn" style="margin-top:12px;max-width:240px">아바타 다시 만들기</button>
+      <button class="btn white sm" type="button" id="myAvBtn" hidden>아바타 다시 만들기</button>
     </div>
     <div class="wallet">
       <div class="row1"><span class="lbl">남은 투자금</span><span class="bonus" id="myBonus" hidden></span></div>
@@ -1978,14 +1982,15 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     gender: [['m', '남자'], ['f', '여자']],
     hairM: [['short', '짧은 머리'], ['spiky', '삐죽 머리'], ['part', '가르마'], ['curly', '곱슬'], ['buzz', '짧게 깎은'], ['bowl', '바가지'], ['twoblock', '투블럭'], ['perm', '웨이브 펌'], ['longm', '장발']],
     hairF: [['long', '긴 생머리'], ['bob', '단발'], ['pony', '포니테일'], ['bun', '똥머리'], ['twin', '양갈래'], ['wavy', '웨이브'], ['hime', '일자 앞머리'], ['odango', '양쪽 똥머리'], ['side', '옆으로 묶기'], ['pixie', '숏컷'], ['curlyf', '뽀글 머리']],
-    hairColor: [['#2b2838', '검정'], ['#6b4430', '갈색'], ['#f0c75e', '금발'], ['#d9573f', '빨강'], ['#4a63d0', '파랑'], ['#f08cbc', '핑크'], ['#d6dae6', '은색']],
-    skin: [['#ffe7d6', '밝은'], ['#f6cfae', '보통'], ['#c98b62', '어두운']],
+    hairColor: [['#2b2838', '검정'], ['#6b4430', '갈색'], ['#a8744a', '밝은 갈색'], ['#f0c75e', '금발'], ['#e8893a', '주황'], ['#d9573f', '빨강'], ['#4a63d0', '파랑'], ['#5cc9b5', '민트'], ['#8e6bd6', '보라'], ['#f08cbc', '핑크'], ['#d6dae6', '은색']],
+    skin: [['#ffe7d6', '밝은'], ['#f6cfae', '보통'], ['#e8b48c', '구릿빛'], ['#c98b62', '어두운'], ['#8d5a3b', '짙은']],
     glasses: [['none', '없음'], ['round', '동그란 안경'], ['square', '네모 안경'], ['sun', '선글라스']],
     beard: [['none', '없음'], ['mustache', '콧수염'], ['curl', '멋쟁이 콧수염'], ['goatee', '턱수염'], ['stubble', '까칠 수염'], ['full', '덥수룩 수염']],
     outfit: [['tee', '티셔츠'], ['pajama', '잠옷'], ['stripe', '줄무늬 니트'], ['hoodie', '후드티'], ['suit', '정장'], ['fest', '페스티벌 후드']],
     hat: [['none', '없음'], ['cap', '캡모자'], ['beanie', '비니'], ['sheep', '양'], ['cat', '고양이'], ['dog', '강아지'], ['pig', '돼지'], ['cow', '소'], ['bear', '곰'], ['rabbit', '토끼']],
     face: [['smile', '활짝'], ['happy', '방긋'], ['laugh', '깔깔'], ['wink', '윙크'], ['tongue', '메롱'], ['love', '하트 눈'], ['star', '반짝 눈'], ['surprise', '깜짝'], ['fire', '불끈'], ['sleepy', '졸림'], ['cool', '시크']],
-    bg: [['sky', '하늘'], ['lime', '라임'], ['pink', '핑크'], ['star', '반짝 별']],
+    bg: [['sky', '하늘'], ['lime', '라임'], ['pink', '핑크'], ['mint', '민트'], ['lav', '라벤더'], ['peach', '복숭아'], ['sun', '노랑'], ['star', '반짝 별']],
+    acc: [['none', '없음'], ['blush', '볼터치'], ['star', '별 스티커'], ['band', '반창고'], ['flower', '꽃핀'], ['phone', '헤드폰'], ['crown', '왕관'], ['ear', '귀걸이']],
     outfitColor: [['#232b52', '남색'], ['#3445a0', '로열'], ['#0aa0e8', '하늘'], ['#0b6b3a', '초록'], ['#e5484d', '빨강'], ['#2b2838', '검정'], ['#f4f4f4', '흰색'], ['#f2a33a', '주황'], ['#f5d63d', '노랑'], ['#f6a5c0', '핑크'], ['#b9a3e3', '보라']]
   };
   var av = null;
@@ -1996,7 +2001,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   function randomAv() {
     var g = pickR(AV.gender);
     return { gender: g, hair: pickR(g === 'm' ? AV.hairM : AV.hairF), hairColor: pickR(AV.hairColor.slice(0, 4)), skin: pickR(AV.skin),
-      glasses: Math.random() < .65 ? 'none' : pickR(AV.glasses.slice(1)), outfit: pickR(AV.outfit), outfitColor: pickR(AV.outfitColor), face: pickR(AV.face), bg: pickR(AV.bg) };
+      glasses: Math.random() < .65 ? 'none' : pickR(AV.glasses.slice(1)), outfit: pickR(AV.outfit), outfitColor: pickR(AV.outfitColor), face: pickR(AV.face), bg: pickR(AV.bg), acc: Math.random() < .5 ? 'none' : pickR(AV.acc.slice(1)) };
   }
   function shade(hex, k) {
     var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
@@ -2021,7 +2026,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       '<pattern id="pc' + u + '" width="9" height="9" patternUnits="userSpaceOnUse"><path d="M0 0L9 9M9 0L0 9" stroke="' + INK + '" stroke-width="1.1"/></pattern>' +
       '<pattern id="ph' + u + '" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)"><rect width="1.4" height="6" fill="' + INK + '" opacity=".55"/></pattern>' +
       '</defs><rect width="200" height="200" fill="#fff"/>';
-    var BGC = { sky: '#cfdcff', lime: '#eaff7a', pink: '#ffd3e8', star: '#2443e6' }[bg] || '#cfdcff';
+    var BGC = { sky: '#cfdcff', lime: '#eaff7a', pink: '#ffd3e8', mint: '#c6f3e4', lav: '#e2d7ff', peach: '#ffdcc2', sun: '#fff2a8', star: '#2443e6' }[bg] || '#cfdcff';
     s += '<rect width="200" height="200" fill="' + BGC + '"/>';
     if (bg === 'star') s += '<g fill="#ffe14a">' + [[30, 34], [168, 40], [40, 160], [164, 156], [100, 16]].map(function (c) { var x = c[0], y = c[1]; return '<rect x="' + (x - 3) + '" y="' + (y - 10) + '" width="6" height="20"/><rect x="' + (x - 10) + '" y="' + (y - 3) + '" width="20" height="6"/>'; }).join('') + '</g>';
     else s += '<g fill="' + (bg === 'lime' ? '#c8e000' : bg === 'pink' ? '#ffb0d2' : '#b3c6ff') + '">' + [[0, 0], [16, 16], [168, 0], [184, 16], [0, 168], [16, 184], [168, 184], [184, 168]].map(function (c) { return '<rect x="' + c[0] + '" y="' + c[1] + '" width="16" height="16"/>'; }).join('') + '</g>';
@@ -2185,6 +2190,15 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     if (o.glasses === 'square') s += '<rect x="65" y="96" width="32" height="24" rx="5" fill="none"' + st.replace('3.6', '3') + '/><rect x="103" y="96" width="32" height="24" rx="5" fill="none"' + st.replace('3.6', '3') + '/><path d="M97 104 L103 104"' + thin + '/>';
     if (o.glasses === 'sun') s += '<path d="M62 98 L98 98 L96 112 Q94 122 80 122 Q66 122 64 112 Z M102 98 L138 98 L136 112 Q134 122 120 122 Q106 122 104 112 Z" fill="' + INK + '"' + st.replace('3.6', '3') + '/>' +
       '<path d="M70 104 L78 104 M110 104 L118 104" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>';
+    // 액세서리
+    var A = o.acc || 'none';
+    if (A === 'blush') s += '<ellipse cx="68" cy="125" rx="10" ry="5.5" fill="#ff8fbf" opacity=".85"/><ellipse cx="132" cy="125" rx="10" ry="5.5" fill="#ff8fbf" opacity=".85"/>';
+    if (A === 'star') s += '<path d="M140 116 l3 7 7 1 -5 5 1.5 7 -6.5 -3.5 -6.5 3.5 1.5 -7 -5 -5 7 -1z" fill="#ffd23a"' + st.replace('3.6', '2') + '/>';
+    if (A === 'band') s += '<g transform="rotate(-25 66 124)"><rect x="54" y="119" width="24" height="10" rx="4" fill="#f5c99b"' + st.replace('3.6', '2') + '/><rect x="62" y="119" width="8" height="10" fill="#e9b07f"/></g>';
+    if (A === 'flower') s += '<g transform="translate(142 58)">' + [[0, -8], [8, -2], [5, 7], [-5, 7], [-8, -2]].map(function (c) { return '<circle cx="' + c[0] + '" cy="' + c[1] + '" r="6" fill="#ff7eb6"' + st.replace('3.6', '1.8') + '/>'; }).join('') + '<circle r="4.5" fill="#ffd23a"' + st.replace('3.6', '1.6') + '/></g>';
+    if (A === 'phone') s += '<path d="M50 112 Q50 34 100 34 Q150 34 150 112" fill="none" stroke="' + INK + '" stroke-width="9" stroke-linecap="round"/><path d="M50 112 Q50 34 100 34 Q150 34 150 112" fill="none" stroke="#c8ff3a" stroke-width="4" stroke-linecap="round"/><rect x="38" y="96" width="20" height="34" rx="8" fill="#c8ff3a"' + st + '/><rect x="142" y="96" width="20" height="34" rx="8" fill="#c8ff3a"' + st + '/>';
+    if (A === 'crown') s += '<path d="M74 44 L80 22 L92 36 L100 16 L108 36 L120 22 L126 44 Z" fill="#ffd23a"' + st.replace('3.6', '3') + '/><circle cx="100" cy="34" r="3.5" fill="#ff4fa3"/>';
+    if (A === 'ear') s += '<circle cx="52" cy="132" r="5" fill="#ffd23a"' + st.replace('3.6', '2') + '/><circle cx="148" cy="132" r="5" fill="#ffd23a"' + st.replace('3.6', '2') + '/>';
     return s + '</g><rect x="2" y="2" width="196" height="196" fill="none" stroke="' + INK + '" stroke-width="4"/></svg>';
   }
 
@@ -2193,7 +2207,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     return new Promise(function (res) {
       var img = new Image();
       img.onload = function () {
-        var D = 56, c = document.createElement('canvas'); c.width = D; c.height = D;
+        var D = 112, c = document.createElement('canvas'); c.width = D; c.height = D;
         var x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, D, D);
         var d = x.getImageData(0, 0, D, D), p = d.data;
         for (var i = 0; i < p.length; i += 4) {
@@ -2202,10 +2216,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
           p[i + 3] = 255;
         }
         x.putImageData(d, 0, 0);
-        var S1 = 168, big = document.createElement('canvas'); big.width = S1; big.height = S1;
+        var S1 = 112, big = document.createElement('canvas'); big.width = S1; big.height = S1;
         var bx = big.getContext('2d'); bx.imageSmoothingEnabled = false; bx.drawImage(c, 0, 0, S1, S1);
         var out = big.toDataURL('image/png');
-        if (out.length > 38000) out = big.toDataURL('image/jpeg', .9);
+        if (out.length > 45000) out = big.toDataURL('image/jpeg', .95);
         res(out);
       };
       img.onerror = function () { res(''); };
@@ -2397,6 +2411,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       '<div class="avg"><b>머리 스타일</b><div>' + avChips('hair', av.gender === 'm' ? AV.hairM : AV.hairF, av.hair) + '</div></div>' +
       '<div class="avg"><b>머리색</b><div>' + avChips('hairColor', AV.hairColor, av.hairColor, true) + '</div></div>' +
       '<div class="avg"><b>모자</b><div>' + avChips('hat', AV.hat, av.hat || 'none') + '</div></div>' +
+      '<div class="avg"><b>액세서리</b><div>' + avChips('acc', AV.acc, av.acc || 'none') + '</div></div>' +
       '<div class="avg"><b>안경</b><div>' + avChips('glasses', AV.glasses, av.glasses) + '</div></div>' +
       '<div class="avg"><b>수염</b><div>' + avChips('beard', AV.beard, av.beard || 'none') + '</div></div>' +
       '<div class="avg"><b>의상</b><div>' + avChips('outfit', AV.outfit, av.outfit) + '</div></div>' +
@@ -2726,7 +2741,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
 
   /* 05 기업찾기: 번호 + 기업명 + 오른쪽 북마크 (개수 제한 없음) */
   function renderFind() {
-    $('coEye').textContent = 'STAGE 05 · 투자 기업 찾기'; $('coArt').src = CUT.find;
+    $('coEye').textContent = 'STAGE 05 · 투자 기업 찾기'; $('coArt').src = CUT.find; $('coBal').innerHTML = '';
     $('coTitle').textContent = '기업찾기';
     var L = lsLoad();
     $('coTop').innerHTML = '<div class="cohint">전시 패널 번호와 <b>같은 번호</b>를 찾아 기업명 오른쪽 <b>북마크</b>를 눌러요. 03에서 모은 기업은 이미 체크돼 있어요. <b>현재 북마크 ' + L.bm.length + '곳</b></div>';
@@ -2736,13 +2751,14 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       return '<div class="frow' + (on ? ' on' : '') + '"><span class="fn">' + z2(c.team) + '</span><span class="ft"><b>' + esc(c.name) + '</b><span>' + esc(tg) + '</span></span>' +
         '<button class="bmb' + (on ? ' on' : '') + '" type="button" data-bm="' + c.team + '" aria-pressed="' + on + '" aria-label="' + esc(c.name) + ' 북마크"><svg viewBox="0 0 20 26" shape-rendering="crispEdges"><path d="M2 2h16v22l-8-6-8 6z"/></svg></button></div>';
     }).join('');
-    $('coBot').innerHTML = zDone(5) ? '<button class="btn blue" type="button" data-go="inv">💸 09 투자하기로</button>' : '<button class="btn" type="button" data-zdone="5">찾기 완료! 06 미니 볼링게임으로 ▶</button>';
+    $('coBot').innerHTML = (zDone(5) ? '<button class="btn blue" type="button" data-go="inv">💸 09 투자하기로</button>' : '<button class="btn" type="button" data-zdone="5">찾기 완료! 06 미니 볼링게임으로 ▶</button>') + '<button class="btn white" type="button" data-go="home">🏠 홈으로 돌아가기</button>';
   }
   function renderInvTop(rem, closed) {
     $('coEye').textContent = 'STAGE 09 · 가상투자하기'; $('coArt').src = CUT.inv;
     $('coTitle').textContent = '어디에 투자할래?';
     var L = lsLoad();
-    $('coTop').innerHTML = closed ? '' : '<div class="cohint">' + (L.bm.length ? '★ 북마크한 기업 <b>' + L.bm.length + '곳</b>을 맨 위에 모았어요. ' : '') + '한 기업에 모두, 여러 기업에 나눠서도 OK! 투자하면서 <b>전광판</b>에서 순위를 확인해요.</div>';
+    $('coBal').innerHTML = '<div class="mybal"><span>MY 투자금</span><b>' + HF.won(rem) + '</b></div>';
+    $('coTop').innerHTML = (closed ? '' : '<div class="cohint">' + (L.bm.length ? '★ 북마크한 기업 <b>' + L.bm.length + '곳</b>을 맨 위에 모았어요. ' : '') + '한 기업에 모두, 여러 기업에 나눠서도 OK! 투자하면서 <b>전광판</b>에서 순위를 확인해요.</div>');
     $('coBot').innerHTML = closed ? '' : '<button class="btn white" type="button" data-go="quest">🎮 더 투자하고 싶다면? 10 모바일 미니게임</button>';
   }
   $('cos').addEventListener('click', function (e) {
