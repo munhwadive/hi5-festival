@@ -3061,9 +3061,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       return '<button class="q' + (g.done ? ' done' : '') + '" type="button" data-game="' + g.key + '"' + (g.done ? ' disabled' : '') + '><span class="ic">' + GI[g.key] + '</span>' +
         '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (g.done ? '완료 · 성공률 ' + g.score + '%' : GD[g.key]) + '</span></span><span class="st' + (g.done ? ' done' : '') + '">' + (g.done ? 'CLEAR' : 'PLAY') + '</span></button>';
     }).join('');
-    $('qGames').innerHTML += XG.filter(function (g) { return (S.booths || []).some(function (b) { return (b.name || '').indexOf(g.name) === 0; }); }).map(function (g) { var d = xgDone(g);
+    $('qGames').innerHTML += XG.filter(function (g) { return (S.booths || []).some(function (b) { return (b.name || '').indexOf(g.name) === 0; }); }).map(function (g) { var d = xgDone(g), lk = !d && xgLock(g);
       return '<button class="q' + (d ? ' done' : '') + '" type="button" data-xg="' + g.k + '"' + (d ? ' disabled' : '') + '><span class="ic" style="font-size:30px">' + g.ic + '</span>' +
-        '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (d ? '완료 · +' + man(d.reward) : g.d + ' · 최대 +' + (g.max || '1,000만')) + '</span></span><span class="st' + (d ? ' done' : '') + '">' + (d ? 'CLEAR' : 'PLAY') + '</span></button>'; }).join('');
+        '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (d ? '완료 · +' + man(d.reward) : lk ? '플레이 완료 · 눌러서 보상 받기 (+' + ((lk.amt || 300).toLocaleString('en-US')) + '만)' : g.d + ' · 1회만 플레이 · 최대 +' + (g.max || '1,000만')) + '</span></span><span class="st' + (d ? ' done' : '') + '">' + (d ? 'CLEAR' : lk ? 'GET' : 'PLAY') + '</span></button>'; }).join('');
     $('qBooths').innerHTML = S.booths.filter(function (b) { return !/^LV\.\d/.test(b.name || ''); }).map(function (b) {
       return '<div class="q' + (b.done ? ' done' : '') + '"><span class="ic">🎯</span><span class="tx"><b>' + esc(b.name) + '</b><span>' + esc(b.desc || '') + ' · +' + man(b.reward) + '</span></span><span class="st' + (b.done ? ' done' : '') + '">' + (b.done ? 'CLEAR' : 'QR') + '</span></div>';
     }).join('');
@@ -3092,7 +3092,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('qStamps').textContent = S.steps.filter(function (s) { return s.done; }).length + '/12';
     $('stampGrid').innerHTML = S.steps.map(function (s, i) { return '<div class="' + (s.done ? 'on' : '') + '"><span><i>' + (s.done ? ICON[s.key] : ('0' + (i + 1)).slice(-2)) + '</i>' + esc(s.name) + '</span></div>'; }).join('');
   }
-  $('qGames').addEventListener('click', function (e) { var x = e.target.closest('[data-xg]'); if (x && !x.disabled) { XG.forEach(function (g) { if (g.k === x.dataset.xg) g.f(); }); return; } var b = e.target.closest('[data-game]'); if (b && !b.disabled) ({ quiz: playQuiz, coin: playCoin, updown: playUpdown }[b.dataset.game] || playQuiz)(); });
+  $('qGames').addEventListener('click', function (e) { var x = e.target.closest('[data-xg]'); if (x && !x.disabled) { XG.forEach(function (g) { if (g.k !== x.dataset.xg) return; if (xgDone(g)) return; var lk = xgLock(g); if (lk) { x.disabled = true; toast('이미 플레이했어요 · 결과 보상을 받는 중'); xgClaim(g, lk).catch(function () { x.disabled = false; }); } else g.f(); }); return; } var b = e.target.closest('[data-game]'); if (b && !b.disabled) ({ quiz: playQuiz, coin: playCoin, updown: playUpdown }[b.dataset.game] || playQuiz)(); });
   $('codeBtn').addEventListener('click', function () {
     var c = $('codeIn').value.trim();
     if (!c) return toast('QR 아래 코드를 입력해 주세요');
@@ -3393,28 +3393,32 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     { k: 'g6', lv: 6, name: 'LV.6 숫자 순서 터치', ic: '🔢', d: '1부터 16까지 순서대로 빠르게', f: playOrder },
     { k: 'g7', lv: 7, name: 'LV.7 기억력 패턴', ic: '🧠', d: '반짝인 칸을 기억해서 똑같이', f: playMemo }
   ];
+  function xgLockKey(g) { return 'hf26_xg_' + g.k + '_' + (me && me.id || ''); }
+  function xgLock(g, v) { try { if (v === undefined) { var s = localStorage.getItem(xgLockKey(g)); return s ? JSON.parse(s) : null; } localStorage.setItem(xgLockKey(g), JSON.stringify(v)); } catch (e) { return null; } }
+  function xgClaim(g, lk) { var code = (lk && lk.code) || 'M-FQPZA'; return call({ action: 'claim', code: code, rid: rid() }); }
   function xgDone(g) { var r = null; (S && S.booths || []).forEach(function (b) { if (b.done && (b.name || '').indexOf(g.name) === 0) r = b; }); return r; }
   function xgFinish(g, score, line) {
     gameRunning = false;
     score = Math.max(0, Math.min(100, score));
     var tier = Math.max(1, Math.min(20, Math.round(score / 5))), code = 'G-' + g.lv + 'T' + ('0' + tier).slice(-2), amt = tier * 50;
     if (g.lv === 4) { var T4 = score >= 85 ? ['M-MJSZZ', 1000, '번개'] : score >= 55 ? ['M-Y5BPN', 600, '빠름'] : ['M-FQPZA', 300, '기본']; code = T4[0]; amt = T4[1]; line += ' · 등급 ' + T4[2]; }
+    xgLock(g, { t: Date.now(), code: code, amt: amt });
     modal('<span class="eyebrow">' + esc(g.name) + ' 결과</span><h3>점수 ' + score.toFixed(1) + '점</h3><p class="note">' + line + '</p><p class="note">보상 <b>+' + amt.toLocaleString('en-US') + '만원</b><br><span class="spin"></span> 보상 받는 중...</p>');
     call({ action: 'claim', code: code, rid: rid() }).catch(function () { closeModal(); });
   }
   function xgHead(g, h) { return '<span class="eyebrow">WARM-UP GAME · ' + esc(g.name) + '</span><h3 style="font-size:22px">' + h + '</h3>'; }
   function playReact() {
-    var g = XG[0], R = 5, i = 0, times = [], foul = 0, state = 'idle', t0 = 0, to = null; gameRunning = true;
+    var g = XG[0], R = 5, i = 0, times = [], foul = 0, state = 'idle', t0 = 0, to = null; gameRunning = true; xgLock(g, { t: Date.now(), code: '' });
     modal(xgHead(g, '초록색이 되는 순간 터치! (5번)') + '<button type="button" id="rxPad" class="btn" style="height:220px;font-size:28px;background:#2443e6;touch-action:manipulation">START!</button><div class="hud"><span>라운드 <b id="rxN">0</b>/5</span><span id="rxT">-</span></div>');
     var pad = $('rxPad');
-    function arm() { state = 'wait'; pad.style.background = '#e5484d'; pad.textContent = '기다려...'; to = setTimeout(function () { state = 'go'; pad.style.background = '#2fbf4f'; pad.textContent = '지금!'; t0 = performance.now(); }, 900 + Math.random() * 2100); }
+    function arm() { state = 'wait'; pad.style.background = '#e5484d'; pad.textContent = '기다려...'; to = setTimeout(function () { state = 'go'; pad.style.background = '#2fbf4f'; pad.textContent = '지금!'; t0 = performance.now(); }, 450 + Math.random() * 1100); }
     pad.addEventListener('pointerdown', function (e) {
       e.preventDefault();
       if (state === 'idle') { arm(); return; }
       if (state === 'wait') { clearTimeout(to); foul++; $('rxT').textContent = '너무 빨라요! +0.3초'; times.push(600); next(); return; }
       if (state === 'go') { var ms = performance.now() - t0; times.push(ms); $('rxT').textContent = Math.round(ms) + 'ms'; next(); }
     });
-    function next() { i++; $('rxN').textContent = i; state = 'pause'; pad.style.background = '#0f1a6b'; pad.textContent = i < R ? '다음 준비…' : '끝!'; if (i < R) setTimeout(arm, 700); else setTimeout(done, 500); }
+    function next() { i++; $('rxN').textContent = i; state = 'pause'; pad.style.background = '#0f1a6b'; pad.textContent = i < R ? '다음 준비…' : '끝!'; if (i < R) setTimeout(arm, 350); else setTimeout(done, 300); }
     function done() { var avg = times.reduce(function (a, b) { return a + b; }, 0) / times.length; xgFinish(g, 100 - (avg - 200) / 4.5, '평균 ' + Math.round(avg) + 'ms · 반칙 ' + foul + '번'); }
   }
   function playStop() {
