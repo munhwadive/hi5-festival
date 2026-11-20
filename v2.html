@@ -1989,7 +1989,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     outfit: [['tee', '티셔츠'], ['pajama', '잠옷'], ['stripe', '줄무늬 니트'], ['hoodie', '후드티'], ['suit', '정장'], ['fest', '페스티벌 후드']],
     hat: [['none', '없음'], ['cap', '캡모자'], ['beanie', '비니'], ['sheep', '양'], ['cat', '고양이'], ['dog', '강아지'], ['pig', '돼지'], ['cow', '소'], ['bear', '곰'], ['rabbit', '토끼'], ['panda', '판다'], ['frog', '개구리'], ['fox', '여우'], ['tiger', '호랑이'], ['lion', '사자'], ['chick', '병아리'], ['penguin', '펭귄'], ['dino', '공룡'], ['bucket', '벙거지'], ['beret', '베레모'], ['tophat', '실크햇'], ['cowboy', '카우보이'], ['party', '고깔'], ['chef', '요리사'], ['santa', '산타'], ['witch', '마녀'], ['grad', '학사모'], ['straw', '밀짚'], ['propeller', '프로펠러'], ['viking', '바이킹'], ['flowerc', '화관']],
     face: [['smile', '활짝'], ['happy', '방긋'], ['laugh', '깔깔'], ['wink', '윙크'], ['tongue', '메롱'], ['love', '하트 눈'], ['star', '반짝 눈'], ['surprise', '깜짝'], ['fire', '불끈'], ['sleepy', '졸림'], ['cool', '시크'], ['grin', '씨익'], ['cry', '눈물'], ['shy', '부끄'], ['dizzy', '어질어질'], ['money', '돈 눈'], ['xd', '신남 ><'], ['pout', '뽀뽀'], ['smirk', '피식'], ['catm', '고양이 입']],
-    bg: [['sky', '하늘'], ['lime', '라임'], ['pink', '핑크'], ['mint', '민트'], ['lav', '라벤더'], ['peach', '복숭아'], ['sun', '노랑'], ['star', '반짝 별'], ['dotsky', '하늘 도트'], ['dotpink', '핑크 도트'], ['dotlime', '라임 도트'], ['dotmint', '민트 도트'], ['dotlav', '보라 도트'], ['grid', '모눈'], ['checker', '체크'], ['bands', '줄무늬'], ['night', '밤하늘'], ['sunset', '노을'], ['hearts', '하트'], ['rainbow', '무지개']],
+    bg: [['peach', '복숭아'], ['sun', '노랑'], ['star', '반짝 별'], ['dotsky', '하늘 도트'], ['dotpink', '핑크 도트'], ['dotlime', '라임 도트'], ['dotmint', '민트 도트'], ['dotlav', '보라 도트'], ['grid', '모눈'], ['checker', '체크'], ['bands', '줄무늬'], ['night', '밤하늘'], ['sunset', '노을'], ['hearts', '하트'], ['rainbow', '무지개'], ['sky', '하늘'], ['lime', '라임'], ['pink', '핑크'], ['mint', '민트'], ['lav', '라벤더']],
     brow: [['basic', '기본'], ['thick', '진한'], ['thin', '얇은'], ['straight', '일자'], ['angry', '화난'], ['sad', '처진'], ['high', '올라간'], ['dot', '동글'], ['uni', '연결'], ['wave', '물결']],
     acc: [['none', '없음'], ['blush', '볼터치'], ['star', '별 스티커'], ['band', '반창고'], ['flower', '꽃핀'], ['phone', '헤드폰'], ['crown', '왕관'], ['ear', '귀걸이'], ['ribbon', '리본'], ['heartc', '하트 볼'], ['mic', '마이크'], ['bandana', '머리띠'], ['sparkle', '반짝이'], ['tie', '나비넥타이']],
     outfitColor: [['#232b52', '남색'], ['#3445a0', '로열'], ['#0aa0e8', '하늘'], ['#0b6b3a', '초록'], ['#e5484d', '빨강'], ['#2b2838', '검정'], ['#f4f4f4', '흰색'], ['#f2a33a', '주황'], ['#f5d63d', '노랑'], ['#f6a5c0', '핑크'], ['#b9a3e3', '보라']]
@@ -2345,30 +2345,25 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   /** SVG → 도트(픽셀) PNG (서버 저장용, 56×56 도트를 3배 확대 = 168px) */
   function renderAvatarPng(o) {
     return new Promise(function (res) {
-      var svg = avatarSvg(o).replace('<svg ', '<svg shape-rendering="crispEdges" '), img = new Image();
-      var pal = [[15, 26, 107], [255, 255, 255]];
-      (svg.match(/#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b/g) || []).forEach(function (h) {
-        h = h.slice(1); if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-        var c = [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-        if (!pal.some(function (q) { return q[0] === c[0] && q[1] === c[1] && q[2] === c[2]; })) pal.push(c);
-      });
+      var img = new Image();
       img.onload = function () {
-        var D = 80, K = 3, c = document.createElement('canvas'); c.width = D; c.height = D;
-        var x = c.getContext('2d', { willReadFrequently: true }); x.fillStyle = '#fff'; x.fillRect(0, 0, D, D); x.drawImage(img, 0, 0, D, D);
+        var D = 112, c = document.createElement('canvas'); c.width = D; c.height = D;
+        var x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, D, D);
         var d = x.getImageData(0, 0, D, D), p = d.data;
         for (var i = 0; i < p.length; i += 4) {
-          var best = pal[0], bd = 1e9;
-          for (var j = 0; j < pal.length; j++) { var q = pal[j], dr = p[i] - q[0], dg = p[i + 1] - q[1], db = p[i + 2] - q[2], dd = dr * dr * 3 + dg * dg * 4 + db * db * 2; if (dd < bd) { bd = dd; best = q; } }
-          if (bd < 1800) { p[i] = best[0]; p[i + 1] = best[1]; p[i + 2] = best[2]; } else { p[i] = Math.round(p[i] / 17) * 17; p[i + 1] = Math.round(p[i + 1] / 17) * 17; p[i + 2] = Math.round(p[i + 2] / 17) * 17; }
+          if (Math.max(p[i], p[i + 1], p[i + 2]) < 140) { p[i] = 15; p[i + 1] = 26; p[i + 2] = 107; }
+          else { p[i] = Math.round(p[i] / 17) * 17; p[i + 1] = Math.round(p[i + 1] / 17) * 17; p[i + 2] = Math.round(p[i + 2] / 17) * 17; }
           p[i + 3] = 255;
         }
         x.putImageData(d, 0, 0);
-        var big = document.createElement('canvas'); big.width = D * K; big.height = D * K;
-        var bx = big.getContext('2d'); bx.imageSmoothingEnabled = false; bx.drawImage(c, 0, 0, D * K, D * K);
-        res(big.toDataURL('image/png'));
+        var S1 = 112, big = document.createElement('canvas'); big.width = S1; big.height = S1;
+        var bx = big.getContext('2d'); bx.imageSmoothingEnabled = false; bx.drawImage(c, 0, 0, S1, S1);
+        var out = big.toDataURL('image/png');
+        if (out.length > 45000) out = big.toDataURL('image/jpeg', .95);
+        res(out);
       };
       img.onerror = function () { res(''); };
-      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(avatarSvg(o));
     });
   }
 
@@ -2546,6 +2541,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   function renderAvatarMaker() {
     if (!av) av = baseAv();
     var seq = ++renderSeq;
+    $('avPreview').innerHTML = avatarSvg(av).replace('<svg ', '<svg class="avsvg" ');
     try { localStorage.setItem('hf26_avopt', JSON.stringify(av)); } catch (e) {}
     $('avNext').disabled = true;
     renderAvatarPng(av).then(function (png) { if (seq !== renderSeq) return; avatar = png; $('avNext').disabled = !png; if (png) $('avPreview').innerHTML = '<img class="avimg" alt="" src="' + png + '">'; });
