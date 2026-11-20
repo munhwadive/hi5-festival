@@ -2736,15 +2736,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('hKing').innerHTML = S.king
       ? '👑 나의 투자왕 순위 <b>' + S.king.rank + '위</b> / ' + S.king.of + '명 · TOP3 기업 투자 <b>' + eokTxt(S.king.score) + '</b>'
       : '👑 1~3위 기업에 투자하면 투자왕 레이스에 올라요!' + (S.top3 && S.top3.length ? '<br><span style="color:#6c76a8;font-size:13px">지금 TOP3: ' + esc(S.top3.join(' · ')) + '</span>' : '');
-    renderCourse();
-    renderTags();
-    renderCapy();
+    [renderCourse, renderTags, renderCapy].forEach(function (fn) { try { fn(); } catch (e) { console.error(e); } });
 
-    renderCompanies(rem, closed);
-    renderQuest();
-    renderChars();
-    renderMy(rem, avHtml);
-    renderResult();
+    [function () { renderCompanies(rem, closed); }, renderQuest, renderChars, function () { renderMy(rem, avHtml); }, renderResult].forEach(function (fn) { try { fn(); } catch (e) { console.error(e); } });
   }
 
 
@@ -3060,7 +3054,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   /* ----- 미션 ----- */
   function renderQuest() {
     var pl = S.player;
-    $('qBonus').textContent = '+' + man(pl.bonus); $('qCap').textContent = man(pl.cap); $('qCap2').textContent = man(pl.cap);
+    $('qBonus').textContent = '+' + man(pl.bonus); $('qCap').textContent = pl.cap >= 100000 ? '제한 없음' : man(pl.cap); if ($('qCap2')) $('qCap2').textContent = man(pl.cap);
     $('qMeter').style.width = Math.min(100, pl.bonus / pl.cap * 100) + '%';
     var GI = { quiz: '<i class="art art-crownico" style="width:42px;height:30px"></i>', coin: '<i class="art art-coin2" style="width:36px;height:44px"></i>', updown: '<i class="art art-pad" style="width:44px;height:30px"></i>' }, GD = { quiz: 'OX 3문제 모두 맞히면 · 최대 +1,000만', coin: '떨어지는 코인을 전부 톡톡! · 최대 +1,000만', updown: '🤖 5초 동안 AI보다 많이 터치! · 최대 +1,000만' };
     $('qGames').innerHTML = S.games.map(function (g) {
