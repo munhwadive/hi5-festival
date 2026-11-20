@@ -91,6 +91,9 @@
 .stripes.pz .pz-l { left: 0; top: 50%; width: min(7vw, 36px); }
 .stripes.pz .pz-bl { left: 0; bottom: 0; width: min(30vw, 150px); }
 .stripes.pz .pz-br { right: 0; bottom: 0; width: min(24vw, 120px); }
+@keyframes chBob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-1.2deg); } }
+.scrart, .nxart, .wcart, .zart, .coart, #coArt, .card .cut, img[data-cut] { animation: chBob 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
+@media (prefers-reduced-motion: reduce) { .scrart, .nxart, .wcart, .zart, #coArt, img[data-cut] { animation: none; } }
 </style>
 <style>
 /* 포스터 「투자왕을 찾아라!」 게임 앱 — 흰 바탕 + 하이파이브 스트라이프, 로열블루 굵은 글자, 라임 강조, 픽셀 말풍선·코인 */
@@ -992,12 +995,12 @@ button.tgnext { display: block; width: 100%; text-align: left; font: inherit; cu
     <img class="scrart" data-cut="rank" alt="">
     <span class="eyebrow">STAGE 14 · 투자왕 발표 · 오후 2·3·4시 랭킹 · 5시 최종</span>
     <div class="h2" style="margin-top:4px"><b id="rTitle">투자왕 레이스</b><span id="rState"></span></div>
+    <div class="card" style="margin-top:10px;padding:14px" id="rMe"></div>
     <div class="king" id="rKing"></div>
-    <div class="h2"><b>투자자 TOP 3</b><span>TOP3 기업 투자 합계</span></div>
+    <div class="h2"><b>투자왕 TOP 20</b><span id="rKUp">TOP3 기업 투자 합계 · 실시간</span></div>
     <div class="podium" id="rKings"></div>
     <div class="h2"><b>기업 순위 TOP 3</b></div>
     <div class="podium" id="rCos"></div>
-    <div class="card" style="margin-top:16px;padding:14px" id="rMe"></div>
   </section>
 
   <section id="sLoading" hidden><div style="padding:120px 0;text-align:center"><span class="spin"></span></div></section>
@@ -1337,6 +1340,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     { code: 'M-MJSZZ', type: 'mission', key: 'M3', name: '주사위 가위바위보', reward: 1000, desc: '부스 체험을 마치고 QR 을 찍어요', hint: '' },
     { code: 'M-KPB3X', type: 'mission', key: 'M4', name: 'NPC 애착인형 찾기', reward: 1000, desc: '카피바라 인형 3마리를 찾아 사진을 찍고 02 안내 데스크에서 QR을 찍어요', hint: '' }
   ];
+  [['4', 'LV.4 번개 반응속도'], ['5', 'LV.5 딱 5초 스톱'], ['6', 'LV.6 숫자 순서 터치'], ['7', 'LV.7 기억력 패턴']].forEach(function (g) { for (var t = 1; t <= 20; t++) HF_DEFAULT_MISSIONS.push({ code: 'G-' + g[0] + 'T' + ('0' + t).slice(-2), type: 'mission', key: 'XG' + g[0] + t, name: g[1], reward: t * 50, desc: '' }); });
   var HF_GAMES = {
     // 점수 = 성공률(%) · 100% 성공 1,000만 / 10% 떨어질 때마다 100만씩 줄어듦
     coin: { name: 'LV.1 코인 캐치 10초', max: 100 },
@@ -3060,7 +3064,10 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       return '<button class="q' + (g.done ? ' done' : '') + '" type="button" data-game="' + g.key + '"' + (g.done ? ' disabled' : '') + '><span class="ic">' + GI[g.key] + '</span>' +
         '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (g.done ? '완료 · 성공률 ' + g.score + '%' : GD[g.key]) + '</span></span><span class="st' + (g.done ? ' done' : '') + '">' + (g.done ? 'CLEAR' : 'PLAY') + '</span></button>';
     }).join('');
-    $('qBooths').innerHTML = S.booths.map(function (b) {
+    $('qGames').innerHTML += XG.filter(function (g) { return (S.booths || []).some(function (b) { return (b.name || '').indexOf(g.name) === 0; }); }).map(function (g) { var d = xgDone(g);
+      return '<button class="q' + (d ? ' done' : '') + '" type="button" data-xg="' + g.k + '"' + (d ? ' disabled' : '') + '><span class="ic" style="font-size:30px">' + g.ic + '</span>' +
+        '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (d ? '완료 · +' + man(d.reward) : g.d + ' · 최대 +1,000만') + '</span></span><span class="st' + (d ? ' done' : '') + '">' + (d ? 'CLEAR' : 'PLAY') + '</span></button>'; }).join('');
+    $('qBooths').innerHTML = S.booths.filter(function (b) { return !/^LV\.\d/.test(b.name || ''); }).map(function (b) {
       return '<div class="q' + (b.done ? ' done' : '') + '"><span class="ic">🎯</span><span class="tx"><b>' + esc(b.name) + '</b><span>' + esc(b.desc || '') + ' · +' + man(b.reward) + '</span></span><span class="st' + (b.done ? ' done' : '') + '">' + (b.done ? 'CLEAR' : 'QR') + '</span></div>';
     }).join('');
     var found = S.characters.filter(function (c) { return c.found; }).length;
@@ -3088,7 +3095,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('qStamps').textContent = S.steps.filter(function (s) { return s.done; }).length + '/12';
     $('stampGrid').innerHTML = S.steps.map(function (s, i) { return '<div class="' + (s.done ? 'on' : '') + '"><span><i>' + (s.done ? ICON[s.key] : ('0' + (i + 1)).slice(-2)) + '</i>' + esc(s.name) + '</span></div>'; }).join('');
   }
-  $('qGames').addEventListener('click', function (e) { var b = e.target.closest('[data-game]'); if (b && !b.disabled) ({ quiz: playQuiz, coin: playCoin, updown: playUpdown }[b.dataset.game] || playQuiz)(); });
+  $('qGames').addEventListener('click', function (e) { var x = e.target.closest('[data-xg]'); if (x && !x.disabled) { XG.forEach(function (g) { if (g.k === x.dataset.xg) g.f(); }); return; } var b = e.target.closest('[data-game]'); if (b && !b.disabled) ({ quiz: playQuiz, coin: playCoin, updown: playUpdown }[b.dataset.game] || playQuiz)(); });
   $('codeBtn').addEventListener('click', function () {
     var c = $('codeIn').value.trim();
     if (!c) return toast('QR 아래 코드를 입력해 주세요');
@@ -3179,6 +3186,13 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   $('myAvBtn').addEventListener('click', function () { openAvatarChange(); });
 
   /* ----- 결과 ----- */
+  var KS = null, ksAt = 0, ksBusy = false;
+  function kingsPull(force) {
+    if (ksBusy || !me || $('tResult').hidden || (!force && Date.now() - ksAt < 12000)) return;
+    ksBusy = true; ksAt = Date.now();
+    HF.fetchData('player').then(function (d) { KS = d; ksBusy = false; if (!$('tResult').hidden && S) renderResult(); }, function () { ksBusy = false; });
+  }
+  setInterval(function () { if (me && !$('tResult').hidden && !document.hidden) { kingsPull(true); call({ action: 'wallet' }, true).catch(function () {}); } }, 15000);
   function renderResult() {
     var fin = S.status === 'FINAL';
     $('rTitle').textContent = fin ? '2026 투자왕 발표!' : '실시간 투자왕 레이스';
@@ -3187,7 +3201,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     $('rKing').innerHTML = k
       ? '<span class="eyebrow">' + (fin ? 'INVESTOR KING' : 'NOW NO.1') + '</span><div class="kn">👑 ' + esc(k.id) + '</div><div class="ks">TOP3 기업 투자 ' + HF.won(k.score) + '</div>'
       : '<span class="eyebrow">INVESTOR KING</span><div class="kn">???</div><div class="ks">첫 번째 투자왕 후보가 되어 보세요</div>';
-    $('rKings').innerHTML = (S.kingTop || []).map(function (x) { return '<div><b>' + x.rank + '위</b><span>' + esc(x.id) + '</span><em>' + eokTxt(x.score) + '</em></div>'; }).join('') || '<div><b>-</b><span>아직 후보가 없어요</span><em></em></div>';
+    var KL = (KS && KS.kings && KS.kings.length ? KS.kings : (S.kingTop || [])).slice(0, 20), myId = S.player && S.player.id;
+    $('rKings').innerHTML = KL.map(function (x) { var mine = myId && String(x.id) === String(myId); return '<div' + (mine ? ' style="background:var(--lime)"' : '') + '><b>' + x.rank + '위</b><span>' + esc(x.id) + (mine ? ' (나)' : '') + '</span><em>' + eokTxt(x.score) + '</em></div>'; }).join('') || '<div><b>-</b><span>아직 후보가 없어요</span><em></em></div>';
+    kingsPull();
     var cos = S.startups.slice().filter(function (s) { return s.amount > 0; }).sort(function (a, b) { return a.rank - b.rank; }).slice(0, 3);
     $('rCos').innerHTML = cos.map(function (s) { return '<div><b>' + s.rank + '위</b><span>' + esc(s.name) + '</span><em>' + eokTxt(s.amount) + '</em></div>'; }).join('') || '<div><b>-</b><span>아직 투자가 없어요</span><em></em></div>';
     $('rMe').innerHTML = S.king
@@ -3221,7 +3237,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
       else html += '<p class="note">남은 캐릭터 ' + (ev.total - ev.found) + '마리! 계속 찾아보세요</p><button class="btn" type="button" data-close="chars">캐릭터 도감 보기</button>';
     } else {
       html += rewardTxt(ev) + '<p class="note">' + (ev.score != null ? '성공률 ' + ev.score + '%! ' : '') + '추가 투자금으로 더 투자할 수 있어요</p>' +
-        (ev.type === 'mission' ? '<button class="btn" type="button" data-close="home">NEXT ▶ 홈에서 다음 구역 보기</button>' : '<button class="btn" type="button" data-close="inv">💸 09 투자하기로 돌아가기</button>') + '<button class="btn white" type="button" data-close="">닫기</button>';
+        (ev.type === 'mission' && !/^LV\.\d/.test(ev.name || '') ? '<button class="btn" type="button" data-close="home">NEXT ▶ 홈에서 다음 구역 보기</button>' : '<button class="btn" type="button" data-close="inv">💸 09 투자하기로 돌아가기</button>') + '<button class="btn white" type="button" data-close="">닫기</button>';
     }
     if (!/data-close/.test(html)) html += '<button class="btn" type="button" data-close="">확인</button>';
     modal(html);
@@ -3373,6 +3389,82 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     }
   }
 
+  /* ---------- WARM-UP LV.4~7 : 초·실수까지 점수에 반영 → 50만 단위 보상 ---------- */
+  var XG = [
+    { k: 'g4', lv: 4, name: 'LV.4 번개 반응속도', ic: '⚡', d: '초록불이 켜지면 바로 터치! 빠를수록 UP', f: playReact },
+    { k: 'g5', lv: 5, name: 'LV.5 딱 5초 스톱', ic: '⏱️', d: '눈 감고 5.00초에 정확히 STOP!', f: playStop },
+    { k: 'g6', lv: 6, name: 'LV.6 숫자 순서 터치', ic: '🔢', d: '1부터 16까지 순서대로 빠르게', f: playOrder },
+    { k: 'g7', lv: 7, name: 'LV.7 기억력 패턴', ic: '🧠', d: '반짝인 칸을 기억해서 똑같이', f: playMemo }
+  ];
+  function xgDone(g) { var r = null; (S && S.booths || []).forEach(function (b) { if (b.done && (b.name || '').indexOf(g.name) === 0) r = b; }); return r; }
+  function xgFinish(g, score, line) {
+    gameRunning = false;
+    score = Math.max(0, Math.min(100, score));
+    var tier = Math.max(1, Math.min(20, Math.round(score / 5))), code = 'G-' + g.lv + 'T' + ('0' + tier).slice(-2);
+    modal('<span class="eyebrow">' + esc(g.name) + ' 결과</span><h3>점수 ' + score.toFixed(1) + '점</h3><p class="note">' + line + '</p><p class="note">보상 <b>+' + (tier * 50).toLocaleString('en-US') + '만원</b><br><span class="spin"></span> 보상 받는 중...</p>');
+    call({ action: 'claim', code: code, rid: rid() }).catch(function () { closeModal(); });
+  }
+  function xgHead(g, h) { return '<span class="eyebrow">WARM-UP GAME · ' + esc(g.name) + '</span><h3 style="font-size:22px">' + h + '</h3>'; }
+  function playReact() {
+    var g = XG[0], R = 5, i = 0, times = [], foul = 0, state = 'idle', t0 = 0, to = null; gameRunning = true;
+    modal(xgHead(g, '초록색이 되는 순간 터치! (5번)') + '<button type="button" id="rxPad" class="btn" style="height:220px;font-size:28px;background:#2443e6;touch-action:manipulation">START!</button><div class="hud"><span>라운드 <b id="rxN">0</b>/5</span><span id="rxT">-</span></div>');
+    var pad = $('rxPad');
+    function arm() { state = 'wait'; pad.style.background = '#e5484d'; pad.textContent = '기다려...'; to = setTimeout(function () { state = 'go'; pad.style.background = '#2fbf4f'; pad.textContent = '지금!'; t0 = performance.now(); }, 900 + Math.random() * 2100); }
+    pad.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      if (state === 'idle') { arm(); return; }
+      if (state === 'wait') { clearTimeout(to); foul++; $('rxT').textContent = '너무 빨라요! +0.3초'; times.push(600); next(); return; }
+      if (state === 'go') { var ms = performance.now() - t0; times.push(ms); $('rxT').textContent = Math.round(ms) + 'ms'; next(); }
+    });
+    function next() { i++; $('rxN').textContent = i; state = 'pause'; pad.style.background = '#0f1a6b'; pad.textContent = i < R ? '다음 준비…' : '끝!'; if (i < R) setTimeout(arm, 700); else setTimeout(done, 500); }
+    function done() { var avg = times.reduce(function (a, b) { return a + b; }, 0) / times.length; xgFinish(g, 100 - (avg - 200) / 4.5, '평균 ' + Math.round(avg) + 'ms · 반칙 ' + foul + '번'); }
+  }
+  function playStop() {
+    var g = XG[1], tries = 3, errs = [], run = false, t0 = 0, raf = 0; gameRunning = true;
+    modal(xgHead(g, '5.00초에 맞춰 STOP! (3번, 2초 뒤 숫자가 사라져요)') + '<div class="quiz-n" id="stT" style="font-size:54px;margin:10px 0;font-family:var(--f-pix)">0.00</div><div class="hud"><span>시도 <b id="stN">0</b>/3</span><span id="stE">-</span></div><button type="button" id="stB" class="btn" style="min-height:110px;font-size:30px;touch-action:manipulation">START</button>');
+    function tick() { var el = (performance.now() - t0) / 1000; $('stT').textContent = el < 2 ? el.toFixed(2) : '?.??'; raf = requestAnimationFrame(tick); }
+    $('stB').addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      if (!run) { run = true; t0 = performance.now(); this.textContent = 'STOP!'; tick(); return; }
+      cancelAnimationFrame(raf); run = false; var el = (performance.now() - t0) / 1000, er = Math.abs(el - 5);
+      errs.push(er); $('stT').textContent = el.toFixed(2); $('stE').textContent = '오차 ' + er.toFixed(2) + '초'; $('stN').textContent = errs.length;
+      if (errs.length >= tries) { var avg = errs.reduce(function (a, b) { return a + b; }, 0) / errs.length; setTimeout(function () { xgFinish(g, 100 - avg * 80, '평균 오차 ' + avg.toFixed(3) + '초'); }, 700); }
+      else this.textContent = 'START';
+    });
+  }
+  function playOrder() {
+    var g = XG[2], n = 16, nx = 1, wrong = 0, t0 = 0, iv = 0; gameRunning = true;
+    var a = []; for (var i = 1; i <= n; i++) a.push(i); a.sort(function () { return Math.random() - .5; });
+    modal(xgHead(g, '1 → 16 순서대로 빠르게 터치! (틀리면 +1초)') + '<div class="hud"><span>다음 <b id="orN">1</b></span><span id="orT">0.0초</span></div><div id="orG" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">' +
+      a.map(function (v) { return '<button type="button" class="btn white" data-or="' + v + '" style="height:58px;font-size:24px;padding:0;touch-action:manipulation">' + v + '</button>'; }).join('') + '</div>');
+    $('orG').addEventListener('pointerdown', function (e) {
+      var b = e.target.closest('[data-or]'); if (!b || b.disabled) return; e.preventDefault();
+      if (!t0) { t0 = performance.now(); iv = setInterval(function () { $('orT').textContent = ((performance.now() - t0) / 1000 + wrong).toFixed(1) + '초'; }, 100); }
+      if (+b.dataset.or === nx) { b.disabled = true; b.style.background = '#dcf52a'; nx++; $('orN').textContent = Math.min(nx, n); if (nx > n) { clearInterval(iv); var t = (performance.now() - t0) / 1000 + wrong; setTimeout(function () { xgFinish(g, 100 - (t - 7) * 4, '기록 ' + t.toFixed(2) + '초 · 실수 ' + wrong + '번'); }, 400); } }
+      else { wrong++; b.style.background = '#ff8a8a'; setTimeout(function () { if (!b.disabled) b.style.background = ''; }, 250); }
+    });
+  }
+  function playMemo() {
+    var g = XG[3], rounds = [3, 4, 5, 6], ri = 0, ok = 0, tot = 0, wrong = 0, pat = [], pick = [], t0 = performance.now(), lock = true; gameRunning = true;
+    modal(xgHead(g, '반짝인 칸을 기억해서 똑같이 터치! (4라운드)') + '<div class="hud"><span>라운드 <b id="mmR">1</b>/4</span><span id="mmS">맞힌 칸 0</span></div><div id="mmG" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px">' +
+      Array.apply(null, Array(16)).map(function (_, i) { return '<button type="button" class="btn white" data-mm="' + i + '" style="height:62px;padding:0;touch-action:manipulation"></button>'; }).join('') + '</div><button type="button" class="btn" id="mmGo" style="margin-top:10px">START</button>');
+    var cells = Array.prototype.slice.call(document.querySelectorAll('#mmG [data-mm]'));
+    function show() {
+      lock = true; pick = []; cells.forEach(function (c) { c.style.background = ''; });
+      var idx = []; for (var i = 0; i < 16; i++) idx.push(i); idx.sort(function () { return Math.random() - .5; }); pat = idx.slice(0, rounds[ri]); tot += pat.length;
+      pat.forEach(function (i) { cells[i].style.background = '#2443e6'; });
+      setTimeout(function () { pat.forEach(function (i) { cells[i].style.background = ''; }); lock = false; }, 1100 + ri * 200);
+    }
+    $('mmGo').addEventListener('click', function () { this.remove(); show(); });
+    $('mmG').addEventListener('pointerdown', function (e) {
+      var b = e.target.closest('[data-mm]'); if (!b || lock) return; e.preventDefault();
+      var i = +b.dataset.mm; if (pick.indexOf(i) >= 0) return; pick.push(i);
+      if (pat.indexOf(i) >= 0) { ok++; b.style.background = '#dcf52a'; } else { wrong++; b.style.background = '#ff8a8a'; }
+      $('mmS').textContent = '맞힌 칸 ' + ok;
+      if (pick.length >= pat.length) { lock = true; ri++; if (ri < rounds.length) { $('mmR').textContent = ri + 1; setTimeout(show, 700); } else { var t = (performance.now() - t0) / 1000; setTimeout(function () { xgFinish(g, ok / tot * 90 + Math.max(0, 10 - Math.max(0, t - 25) / 3) - wrong * 2, '맞힌 칸 ' + ok + '/' + tot + ' · 틀린 칸 ' + wrong + ' · ' + t.toFixed(1) + '초'); }, 600); } }
+    });
+  }
+
   /* ---------- QR 미션 자동 처리 ---------- */
   function pendingCode() {
     var c = (window.HF_BOOT && HF_BOOT.claim) || '';
@@ -3401,7 +3493,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   if (saved && saved.id && saved.pin) {
     me = saved;
     screen('sLoading');
-    call({ action: 'join' }, true).then(function () { go('home'); claimPending(); }).catch(function () { screen('sIntro'); });
+    call({ action: 'wallet' }, true).then(function () { go('home'); claimPending(); }).catch(function () { me = null; try { store.set(KEY, ''); } catch (e) {} screen('sIntro'); });
   } else {
     screen('sIntro');
     if (code) setTimeout(function () { toast('🎯 QR 미션을 하려면 먼저 체크인(또는 이어하기)해 주세요'); }, 400);
