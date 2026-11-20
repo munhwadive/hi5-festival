@@ -1338,12 +1338,12 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     { code: 'C-YLLZ3', type: 'character', key: 'C3', name: '시크릿', reward: 200, look: 'secret', desc: '숨바꼭질 장인. 제일 찾기 어려움', hint: '아무도 안 보는 구석' },
     { code: 'C-YYHR4', type: 'character', key: 'C4', name: '럭키', reward: 200, look: 'lucky', desc: '행운을 부르는 초록 친구', hint: '초록색이 많은 곳' },
     { code: 'C-E8FWK', type: 'character', key: 'C5', name: '부스터', reward: 200, look: 'boost', desc: '에너지 폭발! 언제나 하이텐션', hint: '제일 시끄러운 곳' },
-    { code: 'M-FQPZA', type: 'mission', key: 'M1', name: '인간 과일슬롯머신', reward: 1000, desc: '부스 체험을 마치고 QR 을 찍어요', hint: '' },
-    { code: 'M-Y5BPN', type: 'mission', key: 'M2', name: '미니 볼링게임', reward: 1000, desc: '부스 체험을 마치고 QR 을 찍어요', hint: '' },
-    { code: 'M-MJSZZ', type: 'mission', key: 'M3', name: '주사위 가위바위보', reward: 1000, desc: '부스 체험을 마치고 QR 을 찍어요', hint: '' },
+    { code: 'M-FQPZA', type: 'mission', key: 'M1', name: 'LV.4 번개 반응속도', reward: 300, desc: '워밍업 게임 보상', hint: '' },
+    { code: 'M-Y5BPN', type: 'mission', key: 'M2', name: 'LV.4 번개 반응속도', reward: 600, desc: '워밍업 게임 보상', hint: '' },
+    { code: 'M-MJSZZ', type: 'mission', key: 'M3', name: 'LV.4 번개 반응속도', reward: 1000, desc: '워밍업 게임 보상', hint: '' },
     { code: 'M-KPB3X', type: 'mission', key: 'M4', name: 'NPC 애착인형 찾기', reward: 1000, desc: '카피바라 인형 3마리를 찾아 사진을 찍고 02 안내 데스크에서 QR을 찍어요', hint: '' }
   ];
-  [['4', 'LV.4 번개 반응속도'], ['5', 'LV.5 딱 5초 스톱'], ['6', 'LV.6 숫자 순서 터치'], ['7', 'LV.7 기억력 패턴']].forEach(function (g) { for (var t = 1; t <= 20; t++) HF_DEFAULT_MISSIONS.push({ code: 'G-' + g[0] + 'T' + ('0' + t).slice(-2), type: 'mission', key: 'XG' + g[0] + t, name: g[1], reward: t * 50, desc: '' }); });
+  [].forEach(function (g) { for (var t = 1; t <= 20; t++) HF_DEFAULT_MISSIONS.push({ code: 'G-' + g[0] + 'T' + ('0' + t).slice(-2), type: 'mission', key: 'XG' + g[0] + t, name: g[1], reward: t * 50, desc: '' }); });
   var HF_GAMES = {
     // 점수 = 성공률(%) · 100% 성공 1,000만 / 10% 떨어질 때마다 100만씩 줄어듦
     coin: { name: 'LV.1 코인 캐치 10초', max: 100 },
@@ -3063,7 +3063,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     }).join('');
     $('qGames').innerHTML += XG.filter(function (g) { return (S.booths || []).some(function (b) { return (b.name || '').indexOf(g.name) === 0; }); }).map(function (g) { var d = xgDone(g);
       return '<button class="q' + (d ? ' done' : '') + '" type="button" data-xg="' + g.k + '"' + (d ? ' disabled' : '') + '><span class="ic" style="font-size:30px">' + g.ic + '</span>' +
-        '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (d ? '완료 · +' + man(d.reward) : g.d + ' · 최대 +1,000만') + '</span></span><span class="st' + (d ? ' done' : '') + '">' + (d ? 'CLEAR' : 'PLAY') + '</span></button>'; }).join('');
+        '<span class="tx"><b>' + esc(g.name) + '</b><span>' + (d ? '완료 · +' + man(d.reward) : g.d + ' · 최대 +' + (g.max || '1,000만')) + '</span></span><span class="st' + (d ? ' done' : '') + '">' + (d ? 'CLEAR' : 'PLAY') + '</span></button>'; }).join('');
     $('qBooths').innerHTML = S.booths.filter(function (b) { return !/^LV\.\d/.test(b.name || ''); }).map(function (b) {
       return '<div class="q' + (b.done ? ' done' : '') + '"><span class="ic">🎯</span><span class="tx"><b>' + esc(b.name) + '</b><span>' + esc(b.desc || '') + ' · +' + man(b.reward) + '</span></span><span class="st' + (b.done ? ' done' : '') + '">' + (b.done ? 'CLEAR' : 'QR') + '</span></div>';
     }).join('');
@@ -3388,7 +3388,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
 
   /* ---------- WARM-UP LV.4~7 : 초·실수까지 점수에 반영 → 50만 단위 보상 ---------- */
   var XG = [
-    { k: 'g4', lv: 4, name: 'LV.4 번개 반응속도', ic: '⚡', d: '초록불이 켜지면 바로 터치! 빠를수록 UP', f: playReact },
+    { k: 'g4', lv: 4, name: 'LV.4 번개 반응속도', ic: '⚡', d: '초록불이 켜지면 바로 터치! 평균 0.27초 이내면 번개 등급', max: '1,000만', f: playReact },
     { k: 'g5', lv: 5, name: 'LV.5 딱 5초 스톱', ic: '⏱️', d: '눈 감고 5.00초에 정확히 STOP!', f: playStop },
     { k: 'g6', lv: 6, name: 'LV.6 숫자 순서 터치', ic: '🔢', d: '1부터 16까지 순서대로 빠르게', f: playOrder },
     { k: 'g7', lv: 7, name: 'LV.7 기억력 패턴', ic: '🧠', d: '반짝인 칸을 기억해서 똑같이', f: playMemo }
@@ -3397,8 +3397,9 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
   function xgFinish(g, score, line) {
     gameRunning = false;
     score = Math.max(0, Math.min(100, score));
-    var tier = Math.max(1, Math.min(20, Math.round(score / 5))), code = 'G-' + g.lv + 'T' + ('0' + tier).slice(-2);
-    modal('<span class="eyebrow">' + esc(g.name) + ' 결과</span><h3>점수 ' + score.toFixed(1) + '점</h3><p class="note">' + line + '</p><p class="note">보상 <b>+' + (tier * 50).toLocaleString('en-US') + '만원</b><br><span class="spin"></span> 보상 받는 중...</p>');
+    var tier = Math.max(1, Math.min(20, Math.round(score / 5))), code = 'G-' + g.lv + 'T' + ('0' + tier).slice(-2), amt = tier * 50;
+    if (g.lv === 4) { var T4 = score >= 85 ? ['M-MJSZZ', 1000, '번개'] : score >= 55 ? ['M-Y5BPN', 600, '빠름'] : ['M-FQPZA', 300, '기본']; code = T4[0]; amt = T4[1]; line += ' · 등급 ' + T4[2]; }
+    modal('<span class="eyebrow">' + esc(g.name) + ' 결과</span><h3>점수 ' + score.toFixed(1) + '점</h3><p class="note">' + line + '</p><p class="note">보상 <b>+' + amt.toLocaleString('en-US') + '만원</b><br><span class="spin"></span> 보상 받는 중...</p>');
     call({ action: 'claim', code: code, rid: rid() }).catch(function () { closeModal(); });
   }
   function xgHead(g, h) { return '<span class="eyebrow">WARM-UP GAME · ' + esc(g.name) + '</span><h3 style="font-size:22px">' + h + '</h3>'; }
