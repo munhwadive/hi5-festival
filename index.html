@@ -3364,7 +3364,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
         if (t - last > 600 - Math.min(150, el * 15)) {
           last = t;
           var c = document.createElement('button'); c.type = 'button'; c.className = 'cn'; c.innerHTML = COIN_SVG; c.setAttribute('aria-label', '코인');
-          c._x = Math.random() * (W - 48); c._y = -48; c._v = 110 + Math.random() * 70 + el * 8;
+          c._x = Math.random() * (W - 48); c._y = -48; c._v = (110 + Math.random() * 70 + el * 8) * 1.5;
           c.style.left = c._x + 'px'; c.style.top = c._y + 'px';
           arena.appendChild(c); coins.push(c);
         }
