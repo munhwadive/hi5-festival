@@ -474,7 +474,12 @@ body.no-led .bar::after { display: none; }
 .portrait .ticker { height: 76px; }
 .portrait .side { top: 1250px; height: 594px; }
 .portrait .more { padding-top: 8px; }
-.portrait .more ol.kings li { padding-top: 2px; padding-bottom: 2px; }
+.portrait .more ol.kings li { padding-top: 0; padding-bottom: 0; min-height: 0; }
+.portrait .side { top: 1092px; height: 560px; }
+.portrait .more ol.kings li .n, .portrait .more ol.kings.pg li:first-child .n { font-size: 29px; }
+.portrait .more ol.kings li:first-child .n { font-size: 31px; }
+.portrait .more ol.kings li .r, .portrait .more ol.kings li .a { font-size: 26px; }
+.portrait .more ol.kings li img, .portrait .more ol.kings li .av { width: 46px; height: 46px; }
 .portrait .stat .lbl { font-size: 18px; }
 
 /* 마스코트: 왼쪽으로 기운 그림을 바로 세우고, 잘린 몸통 아래쪽은 받침대 뒤로 자연스럽게 사라지게 */
@@ -1743,7 +1748,8 @@ if (!document.documentElement.classList.contains('need-setup')) {
   // 세로 전광판: board-vertical.html 또는 주소 뒤에 ?v=1
   var PORTRAIT = document.documentElement.classList.contains('portrait') || /[?&]v=1\b/.test(location.search);
   if (PORTRAIT) document.documentElement.classList.add('portrait');
-  var SW = PORTRAIT ? 1080 : 1920, SH = PORTRAIT ? 1920 : 1080;
+  var SW = PORTRAIT ? 1080 : 1920, SH = PORTRAIT ? 1731 : 1080; /* 세로 LED 644×1032 (P1.86) 비율 */
+  var KPG = PORTRAIT ? 6 : 7; /* 투자왕 한 페이지 인원 */
   ['fx', 'confetti'].forEach(function (id) { var c = $(id); if (c) { c.width = SW; c.height = SH; } });
   if (PORTRAIT) { var bgs = document.querySelector('.bg-stripes'); if (bgs) bgs.setAttribute('preserveAspectRatio', 'xMaxYMax slice'); }
   function fit() {
@@ -2068,7 +2074,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
       return;
     }
     kAll = kings; kTop3 = top3 || [];
-    var pages = Math.min(3, Math.ceil(kings.length / 7));
+    var pages = Math.min(3, Math.ceil(kings.length / KPG));
     if (kPage >= pages) kPage = 0;
     drawKingPage();
     if (!kTimer) kTimer = setInterval(nextKingPage, 7000);
@@ -2086,7 +2092,7 @@ if (!document.documentElement.classList.contains('need-setup')) {
   }
   function drawKingPage() {
     var ol = $('kingList'); if (!ol || !kAll.length) return;
-    var from = kPage * 7, list = kAll.slice(from, from + 7);
+    var from = kPage * KPG, list = kAll.slice(from, from + KPG);
     ol.classList.toggle('pg', kPage > 0);
     ol.innerHTML = list.map(kingRow).join('');
     // 긴 닉네임은 칸에 맞게 글씨를 조금씩 줄임
@@ -2095,11 +2101,11 @@ if (!document.documentElement.classList.contains('need-setup')) {
       while (n.scrollWidth > n.clientWidth + 1 && fs > 22) { fs -= 2; n.style.fontSize = fs + 'px'; }
     });
     var lbl = document.querySelector('.kr-lbl');
-    var pages = Math.min(3, Math.ceil(kAll.length / 7));
+    var pages = Math.min(3, Math.ceil(kAll.length / KPG));
     if (lbl) lbl.textContent = (from + 1) + '~' + (from + list.length) + '위' + (pages > 1 ? ' · ' + (kPage + 1) + '/' + pages : '');
   }
   function nextKingPage() {
-    var pages = Math.min(3, Math.ceil(kAll.length / 7));
+    var pages = Math.min(3, Math.ceil(kAll.length / KPG));
     if (pages < 2) return;
     var ol = $('kingList');
     ol.classList.add('kout');
@@ -2544,6 +2550,28 @@ document.addEventListener('fullscreenchange',function(){var h=document.getElemen
 .music-chip{position:fixed;left:16px;top:16px;z-index:70;background:rgba(7,11,38,.88);color:#d9e021;border:2px solid #d9e021;
   font:900 18px 'Noto Sans KR',sans-serif;padding:10px 18px;border-radius:999px;transition:opacity .6s;pointer-events:none}
 .music-chip.hide{opacity:0}
+
+/* =================== 세로 LED 644×1032 · P1.86 (스테이지 1080×1731, 0.596배로 화면을 꽉 채움) =================== */
+.portrait #stage { height: 1731px; }
+.portrait .hd { top: 16px; height: 300px; }
+.portrait .hd-title { font-size: 92px; margin-top: 6px; }
+.portrait .hd-kr { font-size: 36px; margin-top: 6px; }
+.portrait .hd-sub { font-size: 24px; }
+.portrait .mascot { top: 108px; }
+.portrait .bubble { top: 6px; left: 560px; }
+.portrait .ledge { top: 352px; }
+.portrait .board { top: 374px; height: 712px; }
+.portrait .side { top: 1100px; height: 552px; }
+.portrait .more ol.kings { gap: 2px; }
+.portrait .more ol.kings li { padding-top: 2px; padding-bottom: 2px; }
+.portrait .ticker { height: 76px; }
+.portrait .stat .lbl, .portrait .stat.total .lbl { font-size: 26px; }
+.portrait .stat.total .full { font-size: 26px; }
+.portrait .more ol.kings li .n, .portrait .more ol.kings.pg li:first-child .n { font-size: 32px; }
+.portrait .more ol.kings li .r, .portrait .more ol.kings li .a { font-size: 28px; }
+.portrait .winner { top: 330px; }
+.portrait .ks-main, .portrait .ks-main.has-av { top: 300px; }
+.portrait .podium { bottom: 130px; }
 </style>
 <script>
 (function () {
