@@ -2819,7 +2819,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
           '<button class="amt' + (pick['_c_' + s.name] ? ' on' : '') + '" type="button" data-custom="' + esc(s.name) + '">직접입력</button></div>' +
           (pick['_c_' + s.name] ? '<div class="custom"><input type="number" inputmode="numeric" min="1" max="' + L + '" data-cin="' + esc(s.name) + '" value="' + (p || '') + '" placeholder="최대 ' + L + '"><span>만원</span></div>' : '') +
           '<button class="btn go' + (isArmed ? '' : ' blue') + '" type="button" data-invest="' + esc(s.name) + '"' + (p > 0 && p <= L ? '' : ' disabled') + '>' +
-          (p > 0 ? (isArmed ? '한 번 더 누르면 ' + man(p) + ' 투자!' : 'INVEST ' + man(p)) : 'INVEST') + '</button>') +
+          (p > 0 ? (isArmed ? '한 번 더 누르면 ' + man(p) + ' 투자!' : '투자하기/INVEST ' + man(p)) : '투자하기/INVEST') + '</button>') +
         (mine ? '<div class="mine">✓ 내가 투자한 금액 ' + man(wonMan(mine)) + '</div>' : '') +
         '</div>';
     }).join('');
@@ -2845,7 +2845,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     pick[i] = v; armed = null;
     var b = document.querySelector('[data-invest="' + i + '"]');
     var L = wonMan(S.remaining);
-    if (b) { b.disabled = !(v > 0 && v <= L); b.textContent = v > L ? '남은 금액(' + man(L) + ')보다 많아요' : v > 0 ? 'INVEST ' + man(v) : 'INVEST'; b.className = 'btn go blue'; }
+    if (b) { b.disabled = !(v > 0 && v <= L); b.textContent = v > L ? '남은 금액(' + man(L) + ')보다 많아요' : v > 0 ? '투자하기/INVEST ' + man(v) : '투자하기/INVEST'; b.className = 'btn go blue'; }
   });
 
   /* ----- 미션 ----- */
