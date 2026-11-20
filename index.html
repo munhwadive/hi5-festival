@@ -3472,7 +3472,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
     var c = store.get(PEND);
     if (!c || !me) return;
     store.del(PEND);
-    call({ action: 'claim', code: c, rid: 'url_' + c + '_' + me.id }).catch(function () {});
+    call({ action: 'claim', code: c, rid: rid() }).catch(function () {});
   }
 
   /* ---------- 로그아웃·새로고침 ---------- */
@@ -3483,7 +3483,7 @@ if (typeof window !== 'undefined') window.HF_DEFAULT_AVATAR = 'data:image/png;ba
 
   /* ---------- 시작 ---------- */
   var code = pendingCode();
-  if (code) store.set(PEND, code);
+  if (code) { store.set(PEND, code); try { var u = new URL(location.href); u.searchParams.delete('m'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } catch (e) {} }
   var saved = null;
   try { saved = JSON.parse(store.get(KEY) || 'null'); } catch (e) { saved = null; }
   avatar = store.get(AVKEY) || '';
