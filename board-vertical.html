@@ -1753,6 +1753,11 @@ if (!document.documentElement.classList.contains('need-setup')) {
   ['fx', 'confetti'].forEach(function (id) { var c = $(id); if (c) { c.width = SW; c.height = SH; } });
   if (PORTRAIT) { var bgs = document.querySelector('.bg-stripes'); if (bgs) bgs.setAttribute('preserveAspectRatio', 'xMaxYMax slice'); }
   function fit() {
+    if (PORTRAIT) { /* 세로: 화면 비율에 맞춰 스테이지 폭을 늘려 빈 여백 없이 꽉 채움 (688×1032 → 1154×1731) */
+      SW = Math.max(1000, Math.min(1400, Math.round(SH * window.innerWidth / Math.max(1, window.innerHeight))));
+      stage.style.width = SW + 'px'; document.documentElement.style.setProperty('--xs', (SW - 1080) + 'px');
+      ['fx', 'confetti'].forEach(function (id) { var c = $(id); if (c && c.width !== SW) c.width = SW; });
+    }
     var s = Math.min(window.innerWidth / SW, window.innerHeight / SH);
     stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
   }
@@ -2572,6 +2577,11 @@ document.addEventListener('fullscreenchange',function(){var h=document.getElemen
 .portrait .winner { top: 330px; }
 .portrait .ks-main, .portrait .ks-main.has-av { top: 300px; }
 .portrait .podium { bottom: 130px; }
+/* 세로 전광판 꽉 채우기 (688×1032 등 어떤 세로 비율이든) */
+.portrait .ledge, .portrait .board { width: calc(100% - 96px); }
+.portrait #divBanner { width: calc(100% - 100px); }
+.portrait .mascot { left: calc(730px + var(--xs, 0px)) !important; }
+.portrait .bubble { left: calc(560px + var(--xs, 0px)); }
 </style>
 <script>
 (function () {
